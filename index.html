@@ -624,6 +624,33 @@
                 return offset;
             }
 
+            // Create a global interval ID to manage the color sync
+            let colorSyncInterval;
+
+            function startColorSync() {
+                // Clear any existing sync interval
+                if (colorSyncInterval) {
+                    cancelAnimationFrame(colorSyncInterval);
+                }
+
+                // Create sync function
+                function syncColors() {
+                    const mainCircleColor =
+                        getComputedStyle(circleMain).backgroundColor;
+                    document
+                        .querySelectorAll('.circle-satellite')
+                        .forEach(satellite => {
+                            satellite.style.background = mainCircleColor;
+                            // Remove any existing color animation
+                            satellite.style.animation = 'none';
+                        });
+                    colorSyncInterval = requestAnimationFrame(syncColors);
+                }
+
+                // Start the sync
+                syncColors();
+            }
+
             function createSatelliteCircles() {
                 const container = circleMain;
                 const numberOfSatellites = parseInt(
@@ -668,6 +695,9 @@
 
                 // Start the smooth position updates
                 updateSatellitePositions();
+
+                // After creating satellites, restart color sync
+                startColorSync();
             }
 
             function getBreathingCycleDuration() {
@@ -812,8 +842,11 @@
                 style.textContent = breatheKeyframes;
                 document.head.appendChild(style);
 
-                // Apply animation only to main circle
+                // Apply scale animation only to main circle
                 circleMain.style.animation = `breatheScale ${totalDuration}s infinite ease-in-out, colorChange ${totalDuration}s infinite ease-in-out`;
+
+                // Restart color sync
+                startColorSync();
 
                 // Update satellite positions to match new timing
                 updateSatellitePositions();
@@ -921,6 +954,7 @@
                 document.getElementById('satelliteCountValue').textContent =
                     sliders.satelliteCount.value;
                 createSatelliteCircles();
+                // Color sync is now handled in createSatelliteCircles
             });
 
             sliders.blurEffect.addEventListener('input', () => {

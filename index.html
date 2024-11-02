@@ -45,11 +45,11 @@
             }
 
             .circle-satellite {
-                top: 50%;
-                left: 50%;
-                transform-origin: center center;
-                transition: transform 2s ease-in-out;
-                filter: blur(1.5px);
+                position: absolute;
+                border-radius: 50%;
+                pointer-events: none;
+                border: none;
+                box-shadow: none;
             }
 
             .controls {
@@ -541,6 +541,7 @@
         </div>
 
         <script>
+            // First, declare all our global variables and state
             const circleMain = document.querySelector('.circle-main');
             const breathingCircle = document.querySelector('.breathing-circle');
             const sliders = {
@@ -558,265 +559,237 @@
                 glowEffect: document.getElementById('glowEffect'),
             };
 
-            // Add theme configuration
-            const themes = {
-                theme1: {
-                    exhaleColor: '#667db6',
-                    inhaleColor: '#0082c8',
-                },
-                theme2: {
-                    exhaleColor: '#CAC531',
-                    inhaleColor: '#F3F9A7',
-                },
-                theme3: {
-                    exhaleColor: '#f5af19',
-                    inhaleColor: '#f12711',
-                },
+            // Create our state object with default values
+            const state = {
+                inhaleTime: 4,
+                inhalePause: 1,
+                exhaleTime: 4,
+                exhalePause: 1,
+                satelliteCount: 75,
+                blurEffect: 0,
+                innerBoundary: 5,
+                outerBoundary: 10,
+                leftBoundary: 50,
+                rightBoundary: 50,
+                satelliteSize: 46,
+                glowEffect: 50,
             };
 
-            // Add color swap functionality
-            const colorSwapToggle = document.getElementById('colorSwap');
-
-            function updateTheme(themeName) {
-                const theme = themes[themeName];
-                const isSwapped = colorSwapToggle.checked;
-
-                // Create current theme colors based on swap state
-                const currentColors = {
-                    exhaleColor: isSwapped
-                        ? theme.inhaleColor
-                        : theme.exhaleColor,
-                    inhaleColor: isSwapped
-                        ? theme.exhaleColor
-                        : theme.inhaleColor,
-                };
-
-                // Update the animation colors
-                const breatheKeyframes =
-                    document.getElementById('breathe-animation');
-                if (breatheKeyframes) {
-                    breatheKeyframes.remove();
+            // Then declare all our functions
+            function getSuffix(key) {
+                switch (key) {
+                    case 'blurEffect':
+                    case 'satelliteSize':
+                        return 'px';
+                    case 'glowEffect':
+                        return 'px';
+                    case 'innerBoundary':
+                    case 'outerBoundary':
+                    case 'leftBoundary':
+                    case 'rightBoundary':
+                        return '%';
+                    default:
+                        return 's'; // For time-related sliders
                 }
-
-                updateAnimation(currentColors);
             }
 
-            // Add event listeners
-            colorSwapToggle.addEventListener('change', () => {
-                updateTheme(
-                    document.querySelector('input[name="theme"]:checked').value
-                );
-            });
+            function updateState(key, value) {
+                state[key] = value;
+                // Update the display value with the correct suffix
+                const displayElement = document.getElementById(`${key}Value`);
+                if (displayElement) {
+                    const suffix = getSuffix(key);
+                    displayElement.textContent = `${value}${suffix}`;
+                }
 
-            document.querySelectorAll('input[name="theme"]').forEach(radio => {
-                radio.addEventListener('change', e => {
-                    updateTheme(e.target.value);
-                });
-            });
+                // Update animation if timing-related values change
+                if (
+                    [
+                        'inhaleTime',
+                        'inhalePause',
+                        'exhaleTime',
+                        'exhalePause',
+                    ].includes(key)
+                ) {
+                    updateAnimation();
+                }
 
-            function calculateCircleOverlap(
-                mainRadius,
-                satelliteRadius,
-                distance
-            ) {
-                // Returns how much of satellite circle is inside/outside the main circle's edge
-                // Negative value means satellite is too inside, positive means too outside
-                const mainEdge = mainRadius;
-                const satelliteCenter = distance;
-
-                // How far the satellite's edge extends beyond or within the main circle's edge
-                return satelliteCenter - mainEdge + satelliteRadius;
+                applyStateChanges(key);
             }
 
-            function constrainOffset(
-                baseDistance,
-                offset,
-                mainCircleRadius,
-                satelliteRadius
-            ) {
-                const newDistance = baseDistance + offset;
-                const overlap = calculateCircleOverlap(
-                    mainCircleRadius,
-                    satelliteRadius,
-                    newDistance
-                );
+            function applyStateChanges(changedKey) {
+                const satellites =
+                    document.querySelectorAll('.circle-satellite');
 
-                // If satellite is too far inside (completely engulfed)
-                if (overlap < 0) {
-                    // Push it out so it's just visible
-                    return offset - overlap;
-                }
-
-                // If satellite is too far outside (more than 30% of its radius)
-                const maxOutside = satelliteRadius * 0.3;
-                if (overlap > maxOutside) {
-                    // Pull it back in to the maximum allowed distance
-                    return offset - (overlap - maxOutside);
-                }
-
-                return offset;
-            }
-
-            // Create a global interval ID to manage the color sync
-            let colorSyncInterval;
-
-            function startColorSync() {
-                // Clear any existing sync interval
-                if (colorSyncInterval) {
-                    cancelAnimationFrame(colorSyncInterval);
-                }
-
-                // Create sync function
-                function syncColors() {
-                    const mainCircleColor =
-                        getComputedStyle(circleMain).backgroundColor;
-                    document
-                        .querySelectorAll('.circle-satellite')
-                        .forEach(satellite => {
-                            satellite.style.background = mainCircleColor;
-                            // Remove any existing color animation
-                            satellite.style.animation = 'none';
+                switch (changedKey) {
+                    case 'blurEffect':
+                        satellites.forEach(satellite => {
+                            satellite.style.filter = `blur(${state.blurEffect}px)`;
                         });
-                    colorSyncInterval = requestAnimationFrame(syncColors);
-                }
+                        break;
 
-                // Start the sync
-                syncColors();
+                    case 'satelliteSize':
+                        satellites.forEach(satellite => {
+                            satellite.style.width = `${state.satelliteSize}px`;
+                            satellite.style.height = `${state.satelliteSize}px`;
+                        });
+                        break;
+
+                    case 'glowEffect':
+                        updateGlowColor();
+                        break;
+
+                    case 'satelliteCount':
+                        createSatelliteCircles(); // Recreate with new count
+                        break;
+
+                    // Boundary changes don't need immediate action as they're used in updateSatellitePositions
+                }
             }
 
             function createSatelliteCircles() {
-                const container = circleMain;
-                const numberOfSatellites = parseInt(
-                    sliders.satelliteCount.value
-                );
-                const mainCircleRadius = container.offsetWidth / 2;
+                document
+                    .querySelectorAll('.circle-satellite')
+                    .forEach(s => s.remove());
 
-                // Make satellite size relative to main circle
-                const satelliteSizePercent =
-                    parseFloat(sliders.satelliteSize.value) / 100;
-                const satelliteSize = mainCircleRadius * satelliteSizePercent;
+                const container = document.querySelector('.breathing-circle');
+                const containerSize = container.offsetWidth;
+                const mainCircleRadius = containerSize / 2;
 
-                // Remove existing satellites
-                const existingSatellites =
-                    document.querySelectorAll('.circle-satellite');
-                existingSatellites.forEach(satellite => satellite.remove());
-
-                // Create new satellites
-                for (let i = 0; i < numberOfSatellites; i++) {
-                    const angle = (i * 2 * Math.PI) / numberOfSatellites;
-                    const angleDeg = (angle * 180) / Math.PI;
-
+                for (let i = 0; i < state.satelliteCount; i++) {
                     const satellite = document.createElement('div');
                     satellite.className = 'circle circle-satellite';
-                    satellite.dataset.baseAngle = angleDeg;
 
-                    // Random phase offsets for natural movement
-                    satellite.dataset.radialPhaseOffset =
-                        Math.random() * 2 * Math.PI;
-                    satellite.dataset.lateralPhaseOffset =
-                        Math.random() * 2 * Math.PI;
+                    // Remove any individual color animations from satellites
+                    satellite.style.animation = 'none';
 
-                    // Set size relative to main circle
-                    satellite.style.width = `${satelliteSize}px`;
-                    satellite.style.height = `${satelliteSize}px`;
+                    // Apply current state
+                    satellite.style.width = `${state.satelliteSize}px`;
+                    satellite.style.height = `${state.satelliteSize}px`;
+                    satellite.style.filter = `blur(${state.blurEffect}px)`;
+
+                    const angle = (i / state.satelliteCount) * 2 * Math.PI;
+                    satellite.dataset.angle = angle;
+                    satellite.dataset.baseRadius = mainCircleRadius;
+                    satellite.dataset.radialPhase = Math.random() * Math.PI * 2;
+                    satellite.dataset.lateralPhase =
+                        Math.random() * Math.PI * 2;
 
                     container.appendChild(satellite);
                 }
 
                 updateSatellitePositions();
-            }
-
-            function getBreathingCycleDuration() {
-                const inhale = parseInt(sliders.inhaleTime.value);
-                const inhalePause = parseInt(sliders.inhalePause.value);
-                const exhale = parseInt(sliders.exhaleTime.value);
-                const exhalePause = parseInt(sliders.exhalePause.value);
-                return inhale + inhalePause + exhale + exhalePause;
-            }
-
-            function getBoundaryDistance(
-                mainCircleRadius,
-                satelliteRadius,
-                percentage
-            ) {
-                const minPossible = mainCircleRadius - satelliteRadius;
-                const maxPossible = mainCircleRadius + satelliteRadius;
-                const range = maxPossible - minPossible;
-                return minPossible + range * (percentage / 100);
+                startColorSync(); // Make sure color sync starts after creating satellites
             }
 
             function updateSatellitePositions() {
-                const satellites =
-                    document.querySelectorAll('.circle-satellite');
-                const cycleDuration = getBreathingCycleDuration();
-                const mainCircleRadius = circleMain.offsetWidth / 2;
+                const container = breathingCircle;
+                const containerSize = container.offsetWidth;
+                const centerX = containerSize / 2;
+                const centerY = containerSize / 2;
 
-                // Calculate boundaries as percentages of main circle radius
-                const innerBoundaryPercent =
-                    parseInt(sliders.innerBoundary.value) / 100;
-                const outerBoundaryPercent =
-                    parseInt(sliders.outerBoundary.value) / 100;
+                // Get the current scale of the main circle
+                const transform = window.getComputedStyle(circleMain).transform;
+                const matrix = new DOMMatrix(transform);
+                const currentScale = matrix.m11 || 1;
 
-                // Calculate radial boundaries relative to main circle
-                const minRadialDistance =
-                    mainCircleRadius * innerBoundaryPercent;
-                const maxRadialDistance =
-                    mainCircleRadius * outerBoundaryPercent;
-                const radialRange = maxRadialDistance - minRadialDistance;
+                const mainCircleRadius = (containerSize / 2) * currentScale;
 
-                // Calculate lateral boundaries relative to main circle
-                const leftBoundaryPercent =
-                    parseInt(sliders.leftBoundary.value) / 100;
-                const rightBoundaryPercent =
-                    parseInt(sliders.rightBoundary.value) / 100;
-                const maxLateralOffset = mainCircleRadius * 0.5; // 50% of radius for max possible lateral movement
-                const leftBoundary = -maxLateralOffset * leftBoundaryPercent;
-                const rightBoundary = maxLateralOffset * rightBoundaryPercent;
-                const lateralRange = rightBoundary - leftBoundary;
+                document
+                    .querySelectorAll('.circle-satellite')
+                    .forEach(satellite => {
+                        const angle = parseFloat(satellite.dataset.angle);
+                        const satelliteRadius =
+                            parseInt(satellite.style.width) / 2;
 
-                satellites.forEach(satellite => {
-                    const baseAngle = parseFloat(satellite.dataset.baseAngle);
-                    const radialPhaseOffset = parseFloat(
-                        satellite.dataset.radialPhaseOffset
-                    );
-                    const lateralPhaseOffset = parseFloat(
-                        satellite.dataset.lateralPhaseOffset
-                    );
+                        // Calculate boundaries based on current scale
+                        const boundaries = calculateBoundaries(
+                            mainCircleRadius,
+                            satelliteRadius
+                        );
 
-                    const time = Date.now() / 1000;
-                    const frequency = 0.5; // Adjust for speed of movement
+                        // Random movement calculations
+                        const time = Date.now() / 1000;
+                        const radialPhase = parseFloat(
+                            satellite.dataset.radialPhase
+                        );
+                        const lateralPhase = parseFloat(
+                            satellite.dataset.lateralPhase
+                        );
 
-                    // Calculate radial movement
-                    const radialOscillation = Math.sin(
-                        time * frequency * Math.PI + radialPhaseOffset
-                    );
-                    const currentRadialDistance =
-                        minRadialDistance +
-                        ((radialOscillation + 1) / 2) * radialRange;
+                        // Calculate position with random movement
+                        const radialOscillation = Math.sin(time + radialPhase);
+                        const radius =
+                            boundaries.inner +
+                            ((boundaries.outer - boundaries.inner) *
+                                (radialOscillation + 1)) /
+                                2;
 
-                    // Calculate lateral movement
-                    const lateralOscillation = Math.sin(
-                        time * frequency * Math.PI + lateralPhaseOffset
-                    );
-                    const lateralOffset =
-                        leftBoundary +
-                        ((lateralOscillation + 1) / 2) * lateralRange;
+                        const lateralOscillation = Math.sin(
+                            time * 0.7 + lateralPhase
+                        );
+                        const lateralOffset =
+                            boundaries.left +
+                            ((boundaries.right - boundaries.left) *
+                                (lateralOscillation + 1)) /
+                                2;
 
-                    satellite.style.transition = `transform ${cycleDuration}s ease-in-out`;
-                    satellite.style.transform = `
-                        rotate(${baseAngle}deg)
-                        translate(${currentRadialDistance}px, ${lateralOffset}px)
-                        rotate(${-baseAngle}deg)
-                        translate(-50%, -50%)
-                    `;
-                });
+                        // Calculate final position
+                        const x =
+                            Math.cos(angle) * radius + centerX + lateralOffset;
+                        const y =
+                            Math.sin(angle) * radius + centerY + lateralOffset;
+
+                        // Update position
+                        satellite.style.left = `${x - satelliteRadius}px`;
+                        satellite.style.top = `${y - satelliteRadius}px`;
+                    });
+
+                requestAnimationFrame(updateSatellitePositions);
             }
 
-            function updateAnimation(colors = null) {
-                const inhale = parseInt(sliders.inhaleTime.value);
-                const inhalePause = parseInt(sliders.inhalePause.value);
-                const exhale = parseInt(sliders.exhaleTime.value);
-                const exhalePause = parseInt(sliders.exhalePause.value);
+            function calculateBoundaries(mainCircleRadius, satelliteRadius) {
+                const minPossibleRadius = mainCircleRadius - satelliteRadius;
+                const maxPossibleRadius = mainCircleRadius + satelliteRadius;
+                const radiusRange = maxPossibleRadius - minPossibleRadius;
+
+                return {
+                    inner:
+                        minPossibleRadius +
+                        (radiusRange * state.innerBoundary) / 100,
+                    outer:
+                        minPossibleRadius +
+                        (radiusRange * state.outerBoundary) / 100,
+                    left: (-satelliteRadius * state.leftBoundary) / 100,
+                    right: (satelliteRadius * state.rightBoundary) / 100,
+                };
+            }
+
+            function startColorSync() {
+                function syncColors() {
+                    // Get the main circle's current color
+                    const mainCircle = document.querySelector('.circle-main');
+                    const mainColor =
+                        window.getComputedStyle(mainCircle).backgroundColor;
+
+                    // Apply the exact same color to all satellites
+                    document
+                        .querySelectorAll('.circle-satellite')
+                        .forEach(satellite => {
+                            satellite.style.backgroundColor = mainColor;
+                        });
+
+                    requestAnimationFrame(syncColors);
+                }
+
+                syncColors();
+            }
+
+            function updateAnimation() {
+                const inhale = state.inhaleTime;
+                const inhalePause = state.inhalePause;
+                const exhale = state.exhaleTime;
+                const exhalePause = state.exhalePause;
 
                 const totalDuration =
                     inhale + inhalePause + exhale + exhalePause;
@@ -827,100 +800,79 @@
                 const exhalePercent =
                     ((inhale + inhalePause + exhale) / totalDuration) * 100;
 
-                // Get the currently selected theme
-                const selectedTheme = document.querySelector(
-                    'input[name="theme"]:checked'
-                ).value;
-                const currentTheme = colors || themes[selectedTheme];
-
-                const breatheKeyframes = `
+                // Create the keyframes
+                const keyframes = `
                     @keyframes breatheScale {
-                        0% { transform: scale(1); }
-                        ${inhalePercent}% { transform: scale(2.5); }
-                        ${inhalePausePercent}% { transform: scale(2.5); }
-                        ${exhalePercent}% { transform: scale(1); }
-                        100% { transform: scale(1); }
-                    }
-
-                    @keyframes colorChange {
-                        0% { background: ${currentTheme.exhaleColor}; }
-                        ${inhalePercent}% { background: ${currentTheme.inhaleColor}; }
-                        ${inhalePausePercent}% { background: ${currentTheme.inhaleColor}; }
-                        ${exhalePercent}% { background: ${currentTheme.exhaleColor}; }
-                        100% { background: ${currentTheme.exhaleColor}; }
+                        0% { transform: scale(1.2); }
+                        ${inhalePercent}% { transform: scale(2.0); }
+                        ${inhalePausePercent}% { transform: scale(2.0); }
+                        ${exhalePercent}% { transform: scale(1.2); }
+                        100% { transform: scale(1.2); }
                     }
                 `;
 
-                // Remove existing animation style if it exists
-                let existingStyle =
-                    document.getElementById('breathe-animation');
-                if (existingStyle) {
-                    existingStyle.remove();
+                // Update or create the animation style
+                let styleSheet = document.getElementById('breathe-animation');
+                if (styleSheet) {
+                    styleSheet.remove();
                 }
+                styleSheet = document.createElement('style');
+                styleSheet.id = 'breathe-animation';
+                styleSheet.textContent = keyframes;
+                document.head.appendChild(styleSheet);
 
-                // Add new animation style
-                const style = document.createElement('style');
-                style.id = 'breathe-animation';
-                style.textContent = breatheKeyframes;
-                document.head.appendChild(style);
-
-                // Apply scale animation only to main circle
+                // Apply only scale animation to main circle (color handled by CSS)
                 circleMain.style.animation = `breatheScale ${totalDuration}s infinite ease-in-out, colorChange ${totalDuration}s infinite ease-in-out`;
+            }
 
-                // Restart color sync
+            function initializeSliders() {
+                Object.entries(sliders).forEach(([key, slider]) => {
+                    // Set initial values
+                    switch (key) {
+                        case 'satelliteCount':
+                            slider.value = 75;
+                            break;
+                        case 'blurEffect':
+                            slider.value = 0;
+                            break;
+                        case 'innerBoundary':
+                            slider.value = 5;
+                            break;
+                        case 'outerBoundary':
+                            slider.value = 10;
+                            break;
+                        case 'leftBoundary':
+                            slider.value = 50;
+                            break;
+                        case 'rightBoundary':
+                            slider.value = 50;
+                            break;
+                        case 'satelliteSize':
+                            slider.value = 46;
+                            break;
+                        case 'glowEffect':
+                            slider.value = 50;
+                            break;
+                        default:
+                            slider.value = state[key];
+                    }
+
+                    // Update display
+                    updateState(key, parseFloat(slider.value));
+
+                    // Add input event listener for real-time updates
+                    slider.addEventListener('input', e => {
+                        updateState(key, parseFloat(e.target.value));
+                    });
+                });
+            }
+
+            // Make sure sliders are properly initialized when the page loads
+            document.addEventListener('DOMContentLoaded', () => {
+                initializeSliders();
+                updateAnimation();
+                createSatelliteCircles();
                 startColorSync();
-
-                // Update satellite positions to match new timing
-                updateSatellitePositions();
-
-                // Apply animation duration to ALL circles
-                document.querySelectorAll('.circle').forEach(circle => {
-                    circle.style.animationDuration = `${totalDuration}s`;
-                });
-
-                // Update glow color periodically
-                setInterval(updateGlowColor, 100);
-            }
-
-            // Replace the setInterval with this:
-            function startSatelliteAnimations() {
-                const cycleDuration = getBreathingCycleDuration() * 1000; // Convert to milliseconds
-                updateSatellitePositions();
-                setInterval(() => {
-                    updateSatellitePositions();
-                }, cycleDuration);
-            }
-
-            // Initial setup
-            createSatelliteCircles();
-            updateAnimation();
-            startSatelliteAnimations();
-
-            // Update value displays and animation when sliders change
-            Object.entries(sliders).forEach(([key, slider]) => {
-                const valueDisplayIds = {
-                    inhaleTime: 'inhaleValue',
-                    inhalePause: 'inhalePauseValue',
-                    exhaleTime: 'exhaleValue',
-                    exhalePause: 'exhalePauseValue',
-                    satelliteCount: 'satelliteCountValue',
-                    blurEffect: 'blurEffectValue',
-                    innerBoundary: 'innerBoundaryValue',
-                    outerBoundary: 'outerBoundaryValue',
-                    leftBoundary: 'leftBoundaryValue',
-                    rightBoundary: 'rightBoundaryValue',
-                };
-
-                const valueId = valueDisplayIds[key];
-                const display = document.getElementById(valueId);
-
-                slider.addEventListener('input', () => {
-                    display.textContent = `${slider.value}s`;
-                    updateAnimation();
-                    // Restart satellite animations with new timing
-                    clearInterval(window.satelliteInterval);
-                    startSatelliteAnimations();
-                });
             });
 
             // Remove any existing click handlers for the settings button
@@ -972,73 +924,18 @@
             }
 
             // Add event listeners for new sliders
-            sliders.satelliteCount.addEventListener('input', () => {
-                document.getElementById('satelliteCountValue').textContent =
-                    sliders.satelliteCount.value;
-                createSatelliteCircles();
-                // Color sync is now handled in createSatelliteCircles
-            });
-
-            sliders.blurEffect.addEventListener('input', () => {
-                document.getElementById(
-                    'blurEffectValue'
-                ).textContent = `${sliders.blurEffect.value}px`;
-                updateBlurEffect();
-            });
-
-            sliders.outerBoundary.addEventListener('input', () => {
-                document.getElementById(
-                    'outerBoundaryValue'
-                ).textContent = `${sliders.outerBoundary.value}%`;
-                updateSatellitePositions();
-            });
-
-            // Add event listener for inner boundary
-            sliders.innerBoundary.addEventListener('input', () => {
-                document.getElementById(
-                    'innerBoundaryValue'
-                ).textContent = `${sliders.innerBoundary.value}%`;
-                updateSatellitePositions();
-            });
-
-            // Add event listeners for lateral boundaries
-            sliders.leftBoundary.addEventListener('input', () => {
-                document.getElementById(
-                    'leftBoundaryValue'
-                ).textContent = `${sliders.leftBoundary.value}%`;
-                updateSatellitePositions();
-            });
-
-            sliders.rightBoundary.addEventListener('input', () => {
-                document.getElementById(
-                    'rightBoundaryValue'
-                ).textContent = `${sliders.rightBoundary.value}%`;
-                updateSatellitePositions();
-            });
+            sliders.satelliteCount.addEventListener(
+                'input',
+                createSatelliteCircles
+            );
+            sliders.satelliteSize.addEventListener(
+                'input',
+                createSatelliteCircles
+            );
 
             // Set initial blur to 0
             sliders.blurEffect.value = '0';
             updateBlurEffect();
-
-            // Add event listener for satellite size
-            sliders.satelliteSize.addEventListener('input', () => {
-                document.getElementById(
-                    'satelliteSizeValue'
-                ).textContent = `${sliders.satelliteSize.value}px`;
-                createSatelliteCircles(); // Recreate satellites with new size
-            });
-
-            // Add function to update glow color based on current animation color
-            function updateGlowColor() {
-                const wrapper = document.querySelector('.glow-wrapper');
-                const currentColor = getComputedStyle(
-                    document.querySelector('.circle-main')
-                ).backgroundColor;
-                const glowSize = sliders.glowEffect.value;
-                wrapper.style.filter = `drop-shadow(0 0 ${glowSize}px ${currentColor})`;
-                // or for box-shadow:
-                // wrapper.style.boxShadow = `0 0 ${glowSize * 2}px ${currentColor}`;
-            }
 
             // Add event listener for glow effect
             sliders.glowEffect.addEventListener('input', () => {
@@ -1086,6 +983,13 @@
 
             // Update timer every second
             setInterval(updateTimer, 1000);
+
+            // Add the missing updateGlowColor function
+            function updateGlowColor() {
+                const glowWrapper = document.querySelector('.glow-wrapper');
+                const glowIntensity = state.glowEffect;
+                glowWrapper.style.filter = `drop-shadow(0 0 ${glowIntensity}px rgba(102, 125, 182, 0.5))`;
+            }
         </script>
     </body>
 </html>

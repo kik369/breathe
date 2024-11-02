@@ -286,6 +286,48 @@
                     height: min(20px, 5vmin);
                 }
             }
+
+            .collapsible-section {
+                margin-bottom: 15px;
+                border-radius: 8px;
+                overflow: hidden;
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .section-header {
+                padding: 12px 15px;
+                background: rgba(255, 255, 255, 0.1);
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-weight: 500;
+                transition: background-color 0.3s ease;
+            }
+
+            .section-header:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            .toggle-icon {
+                transition: transform 0.3s ease;
+            }
+
+            .section-content {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease-out;
+                padding: 0 15px;
+            }
+
+            .collapsible-section.active .section-content {
+                max-height: 1000px; /* Adjust based on content */
+                padding: 15px;
+            }
+
+            .collapsible-section.active .toggle-icon {
+                transform: rotate(180deg);
+            }
         </style>
     </head>
     <body>
@@ -308,225 +350,265 @@
                     00:00:00
                 </div>
             </div>
-            <div class="control-group">
-                <label>Color Theme</label>
-                <div class="theme-options">
-                    <label class="theme-option">
-                        <input
-                            type="radio"
-                            name="theme"
-                            value="theme1"
-                            checked
-                        />
-                        <span class="theme-preview">
-                            Theme 1
-                            <span
-                                class="color-box"
-                                style="background: #667db6"
-                            ></span>
-                            #667db6 →
-                            <span
-                                class="color-box"
-                                style="background: #0082c8"
-                            ></span>
-                            #0082c8
-                        </span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="theme" value="theme2" />
-                        <span class="theme-preview">
-                            Theme 2
-                            <span
-                                class="color-box"
-                                style="background: #cac531"
-                            ></span>
-                            #CAC531 →
-                            <span
-                                class="color-box"
-                                style="background: #f3f9a7"
-                            ></span>
-                            #F3F9A7
-                        </span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="theme" value="theme3" />
-                        <span class="theme-preview">
-                            Theme 3
-                            <span
-                                class="color-box"
-                                style="background: #f5af19"
-                            ></span>
-                            #f5af19 →
-                            <span
-                                class="color-box"
-                                style="background: #f12711"
-                            ></span>
-                            #f12711
-                        </span>
-                    </label>
+
+            <!-- New collapsible section -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <span>Color Theme</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="theme-options">
+                        <label class="theme-option">
+                            <input
+                                type="radio"
+                                name="theme"
+                                value="theme1"
+                                checked
+                            />
+                            <span class="theme-preview">
+                                Theme 1
+                                <span
+                                    class="color-box"
+                                    style="background: #667db6"
+                                ></span>
+                                #667db6 →
+                                <span
+                                    class="color-box"
+                                    style="background: #0082c8"
+                                ></span>
+                                #0082c8
+                            </span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="theme2" />
+                            <span class="theme-preview">
+                                Theme 2
+                                <span
+                                    class="color-box"
+                                    style="background: #cac531"
+                                ></span>
+                                #CAC531 →
+                                <span
+                                    class="color-box"
+                                    style="background: #f3f9a7"
+                                ></span>
+                                #F3F9A7
+                            </span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="theme3" />
+                            <span class="theme-preview">
+                                Theme 3
+                                <span
+                                    class="color-box"
+                                    style="background: #f5af19"
+                                ></span>
+                                #f5af19 →
+                                <span
+                                    class="color-box"
+                                    style="background: #f12711"
+                                ></span>
+                                #f12711
+                            </span>
+                        </label>
+                    </div>
+                    <div class="color-swap-container">
+                        <label class="swap-toggle">
+                            <input type="checkbox" id="colorSwap" />
+                            <span class="toggle-label"
+                                >Swap Inhale/Exhale Colors</span
+                            >
+                        </label>
+                    </div>
                 </div>
             </div>
-            <div class="color-swap-container">
-                <label class="swap-toggle">
-                    <input type="checkbox" id="colorSwap" />
-                    <span class="toggle-label">Swap Inhale/Exhale Colors</span>
-                </label>
-            </div>
-            <div class="control-group">
-                <label>Inhale Duration (seconds)</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="inhaleTime"
-                        min="1"
-                        max="10"
-                        value="4"
-                    />
-                    <span class="value-display" id="inhaleTimeValue">4s</span>
+
+            <!-- Add more collapsible sections as needed -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <span>Timing Controls</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <!-- Group the timing controls -->
+                    <div class="control-group">
+                        <label>Inhale Duration (seconds)</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="inhaleTime"
+                                min="1"
+                                max="10"
+                                value="4"
+                            />
+                            <span class="value-display" id="inhaleTimeValue"
+                                >4s</span
+                            >
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Inhale Pause (seconds)</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="inhalePause"
+                                min="0"
+                                max="5"
+                                value="1"
+                            />
+                            <span class="value-display" id="inhalePauseValue"
+                                >1s</span
+                            >
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Exhale Duration (seconds)</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="exhaleTime"
+                                min="1"
+                                max="10"
+                                value="4"
+                            />
+                            <span class="value-display" id="exhaleTimeValue"
+                                >4s</span
+                            >
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Exhale Pause (seconds)</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="exhalePause"
+                                min="0"
+                                max="5"
+                                value="1"
+                            />
+                            <span class="value-display" id="exhalePauseValue"
+                                >1s</span
+                            >
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="control-group">
-                <label>Inhale Pause (seconds)</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="inhalePause"
-                        min="0"
-                        max="5"
-                        value="1"
-                    />
-                    <span class="value-display" id="inhalePauseValue">1s</span>
+
+            <!-- Add new collapsible section for advanced settings -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <span>Advanced Settings</span>
+                    <span class="toggle-icon">▼</span>
                 </div>
-            </div>
-            <div class="control-group">
-                <label>Exhale Duration (seconds)</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="exhaleTime"
-                        min="1"
-                        max="10"
-                        value="4"
-                    />
-                    <span class="value-display" id="exhaleTimeValue">4s</span>
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Exhale Pause (seconds)</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="exhalePause"
-                        min="0"
-                        max="5"
-                        value="1"
-                    />
-                    <span class="value-display" id="exhalePauseValue">1s</span>
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Number of Satellites (10-200)</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="satelliteCount"
-                        min="10"
-                        max="200"
-                        value="75"
-                    />
-                    <span class="value-display" id="satelliteCountValue"
-                        >75</span
-                    >
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Inner Boundary</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="innerBoundary"
-                        min="0"
-                        max="100"
-                        value="5"
-                    />
-                    <span class="value-display" id="innerBoundaryValue"
-                        >5%</span
-                    >
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Outer Boundary</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="outerBoundary"
-                        min="0"
-                        max="100"
-                        value="15"
-                    />
-                    <span class="value-display" id="outerBoundaryValue"
-                        >15%</span
-                    >
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Left Boundary</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="leftBoundary"
-                        min="0"
-                        max="100"
-                        value="10"
-                    />
-                    <span class="value-display" id="leftBoundaryValue"
-                        >10%</span
-                    >
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Right Boundary</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="rightBoundary"
-                        min="0"
-                        max="100"
-                        value="10"
-                    />
-                    <span class="value-display" id="rightBoundaryValue"
-                        >10%</span
-                    >
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Satellite Size (radius in px)</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="satelliteSize"
-                        min="1"
-                        max="65"
-                        value="34"
-                        step="0.5"
-                    />
-                    <span class="value-display" id="satelliteSizeValue"
-                        >34px</span
-                    >
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Glow Intensity (px)</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="glowEffect"
-                        min="0"
-                        max="50"
-                        value="50"
-                        step="1"
-                    />
-                    <span class="value-display" id="glowEffectValue">50px</span>
+                <div class="section-content">
+                    <div class="control-group">
+                        <label>Number of Satellites (10-200)</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="satelliteCount"
+                                min="10"
+                                max="200"
+                                value="75"
+                            />
+                            <span class="value-display" id="satelliteCountValue"
+                                >75</span
+                            >
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Inner Boundary</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="innerBoundary"
+                                min="0"
+                                max="100"
+                                value="5"
+                            />
+                            <span class="value-display" id="innerBoundaryValue"
+                                >5%</span
+                            >
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Outer Boundary</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="outerBoundary"
+                                min="0"
+                                max="100"
+                                value="15"
+                            />
+                            <span class="value-display" id="outerBoundaryValue"
+                                >15%</span
+                            >
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Left Boundary</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="leftBoundary"
+                                min="0"
+                                max="100"
+                                value="10"
+                            />
+                            <span class="value-display" id="leftBoundaryValue"
+                                >10%</span
+                            >
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Right Boundary</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="rightBoundary"
+                                min="0"
+                                max="100"
+                                value="10"
+                            />
+                            <span class="value-display" id="rightBoundaryValue"
+                                >10%</span
+                            >
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Satellite Size (radius in px)</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="satelliteSize"
+                                min="1"
+                                max="65"
+                                value="34"
+                                step="0.5"
+                            />
+                            <span class="value-display" id="satelliteSizeValue"
+                                >34px</span
+                            >
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Glow Intensity (px)</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="glowEffect"
+                                min="0"
+                                max="50"
+                                value="50"
+                                step="1"
+                            />
+                            <span class="value-display" id="glowEffectValue"
+                                >50px</span
+                            >
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -983,6 +1065,21 @@
                     'input[name="theme"]:checked'
                 ).value;
                 updateThemeColors(initialTheme, false);
+                // ... rest of your initialization code ...
+            });
+
+            // Add this to your initialization code
+            function initializeCollapsibleSections() {
+                document.querySelectorAll('.section-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        const section = header.closest('.collapsible-section');
+                        section.classList.toggle('active');
+                    });
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                initializeCollapsibleSections();
                 // ... rest of your initialization code ...
             });
         </script>

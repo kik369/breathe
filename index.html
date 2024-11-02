@@ -565,13 +565,13 @@
                 inhalePause: 1,
                 exhaleTime: 4,
                 exhalePause: 1,
-                satelliteCount: 75,
+                satelliteCount: 69,
                 blurEffect: 0,
                 innerBoundary: 5,
-                outerBoundary: 10,
-                leftBoundary: 50,
-                rightBoundary: 50,
-                satelliteSize: 46,
+                outerBoundary: 15,
+                leftBoundary: 0,
+                rightBoundary: 100,
+                satelliteSize: 65,
                 glowEffect: 50,
             };
 
@@ -717,7 +717,7 @@
                             satellite.dataset.lateralPhase
                         );
 
-                        // Calculate position with random movement
+                        // Calculate radial position (distance from center)
                         const radialOscillation = Math.sin(time + radialPhase);
                         const radius =
                             boundaries.inner +
@@ -725,20 +725,22 @@
                                 (radialOscillation + 1)) /
                                 2;
 
+                        // Calculate lateral movement along the arc
                         const lateralOscillation = Math.sin(
                             time * 0.7 + lateralPhase
                         );
                         const lateralOffset =
-                            boundaries.left +
                             ((boundaries.right - boundaries.left) *
                                 (lateralOscillation + 1)) /
-                                2;
+                            2;
 
-                        // Calculate final position
-                        const x =
-                            Math.cos(angle) * radius + centerX + lateralOffset;
-                        const y =
-                            Math.sin(angle) * radius + centerY + lateralOffset;
+                        // Add lateral offset to the base angle
+                        const adjustedAngle =
+                            angle + (lateralOffset * Math.PI) / 180; // Convert offset to radians
+
+                        // Calculate final position using adjusted angle
+                        const x = Math.cos(adjustedAngle) * radius + centerX;
+                        const y = Math.sin(adjustedAngle) * radius + centerY;
 
                         // Update position
                         satellite.style.left = `${x - satelliteRadius}px`;
@@ -829,8 +831,20 @@
                 Object.entries(sliders).forEach(([key, slider]) => {
                     // Set initial values
                     switch (key) {
+                        case 'inhaleTime':
+                            slider.value = 4;
+                            break;
+                        case 'inhalePause':
+                            slider.value = 1;
+                            break;
+                        case 'exhaleTime':
+                            slider.value = 4;
+                            break;
+                        case 'exhalePause':
+                            slider.value = 1;
+                            break;
                         case 'satelliteCount':
-                            slider.value = 75;
+                            slider.value = 69;
                             break;
                         case 'blurEffect':
                             slider.value = 0;
@@ -839,16 +853,16 @@
                             slider.value = 5;
                             break;
                         case 'outerBoundary':
-                            slider.value = 10;
+                            slider.value = 15;
                             break;
                         case 'leftBoundary':
-                            slider.value = 50;
+                            slider.value = 0;
                             break;
                         case 'rightBoundary':
-                            slider.value = 50;
+                            slider.value = 100;
                             break;
                         case 'satelliteSize':
-                            slider.value = 46;
+                            slider.value = 65;
                             break;
                         case 'glowEffect':
                             slider.value = 50;

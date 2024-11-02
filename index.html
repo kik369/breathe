@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
             body {
                 display: flex;
@@ -12,15 +13,20 @@
                 background-color: #0f2027;
                 color: white;
                 font-family: Arial, sans-serif;
+                padding: 3.5rem;
+                box-sizing: border-box;
+                overflow: hidden;
             }
 
             .breathing-circle {
                 position: relative;
-                width: 400px;
-                height: 400px;
+                width: 20vmin;
+                height: 20vmin;
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                max-width: calc(100vw - 7rem);
+                max-height: calc(100vh - 7rem);
             }
 
             .circle {
@@ -31,8 +37,8 @@
             }
 
             .circle-main {
-                width: 400px;
-                height: 400px;
+                width: 100%;
+                height: 100%;
                 animation: breatheScale 8s infinite ease-in-out,
                     colorChange 8s infinite ease-in-out;
                 filter: blur(4px);
@@ -134,16 +140,16 @@
             /* Separate scale and color animations */
             @keyframes breatheScale {
                 0% {
-                    transform: scale(1);
+                    transform: scale(0.4);
                 }
                 40% {
-                    transform: scale(2.5);
+                    transform: scale(0.9);
                 }
                 60% {
-                    transform: scale(2.5);
+                    transform: scale(0.9);
                 }
                 100% {
-                    transform: scale(1);
+                    transform: scale(0.4);
                 }
             }
 
@@ -247,6 +253,33 @@
                 align-items: center;
                 margin-left: 8px;
                 font-size: 14px;
+            }
+
+            @media (max-width: 600px) {
+                .breathing-circle {
+                    width: 32vmin;
+                    height: 32vmin;
+                }
+
+                @keyframes breatheScale {
+                    0% {
+                        transform: scale(0.5);
+                    }
+                    40% {
+                        transform: scale(0.9);
+                    }
+                    60% {
+                        transform: scale(0.9);
+                    }
+                    100% {
+                        transform: scale(0.5);
+                    }
+                }
+
+                .circle-satellite {
+                    width: min(20px, 5vmin);
+                    height: min(20px, 5vmin);
+                }
             }
         </style>
     </head>
@@ -656,23 +689,19 @@
                 const numberOfSatellites = parseInt(
                     sliders.satelliteCount.value
                 );
-                const mainCircleRadius = 200;
-                const satelliteRadius = parseFloat(sliders.satelliteSize.value);
-                const currentBlur = parseFloat(sliders.blurEffect.value);
+                const mainCircleRadius = container.offsetWidth / 2;
 
-                // Updated constraints with dynamic outer boundary
-                const minDistance = mainCircleRadius - satelliteRadius;
-                const maxDistance = getOuterBoundary(
-                    mainCircleRadius,
-                    satelliteRadius
-                );
+                // Make satellite size relative to main circle
+                const satelliteSizePercent =
+                    parseFloat(sliders.satelliteSize.value) / 100;
+                const satelliteSize = mainCircleRadius * satelliteSizePercent;
 
-                // Remove existing satellite circles if any
+                // Remove existing satellites
                 const existingSatellites =
                     document.querySelectorAll('.circle-satellite');
                 existingSatellites.forEach(satellite => satellite.remove());
 
-                // Create new satellite circles
+                // Create new satellites
                 for (let i = 0; i < numberOfSatellites; i++) {
                     const angle = (i * 2 * Math.PI) / numberOfSatellites;
                     const angleDeg = (angle * 180) / Math.PI;
@@ -681,25 +710,20 @@
                     satellite.className = 'circle circle-satellite';
                     satellite.dataset.baseAngle = angleDeg;
 
-                    // Store two phase offsets for radial and lateral movement
+                    // Random phase offsets for natural movement
                     satellite.dataset.radialPhaseOffset =
                         Math.random() * 2 * Math.PI;
                     satellite.dataset.lateralPhaseOffset =
                         Math.random() * 2 * Math.PI;
 
-                    // Apply size and blur effect immediately
-                    satellite.style.width = `${satelliteRadius * 2}px`;
-                    satellite.style.height = `${satelliteRadius * 2}px`;
-                    satellite.style.filter = `blur(${currentBlur}px)`;
+                    // Set size relative to main circle
+                    satellite.style.width = `${satelliteSize}px`;
+                    satellite.style.height = `${satelliteSize}px`;
 
                     container.appendChild(satellite);
                 }
 
-                // Start the smooth position updates
                 updateSatellitePositions();
-
-                // After creating satellites, restart color sync
-                startColorSync();
             }
 
             function getBreathingCycleDuration() {
@@ -725,32 +749,29 @@
                 const satellites =
                     document.querySelectorAll('.circle-satellite');
                 const cycleDuration = getBreathingCycleDuration();
+                const mainCircleRadius = circleMain.offsetWidth / 2;
 
-                const mainCircleRadius = 200;
-                const satelliteRadius = parseFloat(sliders.satelliteSize.value);
+                // Calculate boundaries as percentages of main circle radius
+                const innerBoundaryPercent =
+                    parseInt(sliders.innerBoundary.value) / 100;
+                const outerBoundaryPercent =
+                    parseInt(sliders.outerBoundary.value) / 100;
 
-                // Get radial boundaries
-                const minRadialDistance = getBoundaryDistance(
-                    mainCircleRadius,
-                    satelliteRadius,
-                    parseInt(sliders.innerBoundary.value)
-                );
-                const maxRadialDistance = getBoundaryDistance(
-                    mainCircleRadius,
-                    satelliteRadius,
-                    parseInt(sliders.outerBoundary.value)
-                );
+                // Calculate radial boundaries relative to main circle
+                const minRadialDistance =
+                    mainCircleRadius * innerBoundaryPercent;
+                const maxRadialDistance =
+                    mainCircleRadius * outerBoundaryPercent;
                 const radialRange = maxRadialDistance - minRadialDistance;
 
-                // Get lateral boundaries
-                const maxLateralOffset = satelliteRadius * 2; // Maximum possible lateral movement
-                const leftBoundary = -(
-                    (maxLateralOffset * parseInt(sliders.leftBoundary.value)) /
-                    100
-                );
-                const rightBoundary =
-                    (maxLateralOffset * parseInt(sliders.rightBoundary.value)) /
-                    100;
+                // Calculate lateral boundaries relative to main circle
+                const leftBoundaryPercent =
+                    parseInt(sliders.leftBoundary.value) / 100;
+                const rightBoundaryPercent =
+                    parseInt(sliders.rightBoundary.value) / 100;
+                const maxLateralOffset = mainCircleRadius * 0.5; // 50% of radius for max possible lateral movement
+                const leftBoundary = -maxLateralOffset * leftBoundaryPercent;
+                const rightBoundary = maxLateralOffset * rightBoundaryPercent;
                 const lateralRange = rightBoundary - leftBoundary;
 
                 satellites.forEach(satellite => {
@@ -763,7 +784,7 @@
                     );
 
                     const time = Date.now() / 1000;
-                    const frequency = 0.5;
+                    const frequency = 0.5; // Adjust for speed of movement
 
                     // Calculate radial movement
                     const radialOscillation = Math.sin(
@@ -781,7 +802,6 @@
                         leftBoundary +
                         ((lateralOscillation + 1) / 2) * lateralRange;
 
-                    // Apply both movements
                     satellite.style.transition = `transform ${cycleDuration}s ease-in-out`;
                     satellite.style.transform = `
                         rotate(${baseAngle}deg)

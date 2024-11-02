@@ -565,13 +565,13 @@
                 inhalePause: 1,
                 exhaleTime: 4,
                 exhalePause: 1,
-                satelliteCount: 69,
+                satelliteCount: 70,
                 blurEffect: 0,
                 innerBoundary: 5,
                 outerBoundary: 15,
-                leftBoundary: 0,
-                rightBoundary: 100,
-                satelliteSize: 65,
+                leftBoundary: 50,
+                rightBoundary: 50,
+                satelliteSize: 40,
                 glowEffect: 50,
             };
 
@@ -694,13 +694,18 @@
                 const currentScale = matrix.m11 || 1;
 
                 const mainCircleRadius = (containerSize / 2) * currentScale;
+                const baseSatelliteSize = state.satelliteSize;
+                const scaledSatelliteSize = baseSatelliteSize * currentScale;
 
                 document
                     .querySelectorAll('.circle-satellite')
                     .forEach(satellite => {
                         const angle = parseFloat(satellite.dataset.angle);
-                        const satelliteRadius =
-                            parseInt(satellite.style.width) / 2;
+                        const satelliteRadius = scaledSatelliteSize / 2; // Use scaled size
+
+                        // Update satellite size
+                        satellite.style.width = `${scaledSatelliteSize}px`;
+                        satellite.style.height = `${scaledSatelliteSize}px`;
 
                         // Calculate boundaries based on current scale
                         const boundaries = calculateBoundaries(
@@ -736,7 +741,7 @@
 
                         // Add lateral offset to the base angle
                         const adjustedAngle =
-                            angle + (lateralOffset * Math.PI) / 180; // Convert offset to radians
+                            angle + (lateralOffset * Math.PI) / 180;
 
                         // Calculate final position using adjusted angle
                         const x = Math.cos(adjustedAngle) * radius + centerX;
@@ -844,7 +849,7 @@
                             slider.value = 1;
                             break;
                         case 'satelliteCount':
-                            slider.value = 69;
+                            slider.value = 70;
                             break;
                         case 'blurEffect':
                             slider.value = 0;
@@ -856,13 +861,13 @@
                             slider.value = 15;
                             break;
                         case 'leftBoundary':
-                            slider.value = 0;
+                            slider.value = 50;
                             break;
                         case 'rightBoundary':
-                            slider.value = 100;
+                            slider.value = 50;
                             break;
                         case 'satelliteSize':
-                            slider.value = 65;
+                            slider.value = 40;
                             break;
                         case 'glowEffect':
                             slider.value = 50;

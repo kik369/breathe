@@ -32,8 +32,6 @@
             .circle {
                 position: absolute;
                 border-radius: 50%;
-                filter: none;
-                box-shadow: none;
             }
 
             .circle-main {
@@ -41,7 +39,6 @@
                 height: 100%;
                 animation: breatheScale 8s infinite ease-in-out,
                     colorChange 8s infinite ease-in-out;
-                filter: blur(4px);
             }
 
             .circle-satellite {
@@ -435,20 +432,6 @@
                 </div>
             </div>
             <div class="control-group">
-                <label>Blur Effect (px)</label>
-                <div class="slider-container">
-                    <input
-                        type="range"
-                        id="blurEffect"
-                        min="0"
-                        max="10"
-                        value="0"
-                        step="0.5"
-                    />
-                    <span class="value-display" id="blurEffectValue">0px</span>
-                </div>
-            </div>
-            <div class="control-group">
                 <label>Inner Boundary</label>
                 <div class="slider-container">
                     <input
@@ -550,7 +533,6 @@
                 exhaleTime: document.getElementById('exhaleTime'),
                 exhalePause: document.getElementById('exhalePause'),
                 satelliteCount: document.getElementById('satelliteCount'),
-                blurEffect: document.getElementById('blurEffect'),
                 innerBoundary: document.getElementById('innerBoundary'),
                 outerBoundary: document.getElementById('outerBoundary'),
                 leftBoundary: document.getElementById('leftBoundary'),
@@ -566,7 +548,6 @@
                 exhaleTime: 4,
                 exhalePause: 1,
                 satelliteCount: 70,
-                blurEffect: 0,
                 innerBoundary: 5,
                 outerBoundary: 10,
                 leftBoundary: 10,
@@ -578,11 +559,6 @@
             // Then declare all our functions
             function getSuffix(key) {
                 switch (key) {
-                    case 'blurEffect':
-                    case 'satelliteSize':
-                        return 'px';
-                    case 'glowEffect':
-                        return 'px';
                     case 'innerBoundary':
                     case 'outerBoundary':
                     case 'leftBoundary':
@@ -622,12 +598,6 @@
                     document.querySelectorAll('.circle-satellite');
 
                 switch (changedKey) {
-                    case 'blurEffect':
-                        satellites.forEach(satellite => {
-                            satellite.style.filter = `blur(${state.blurEffect}px)`;
-                        });
-                        break;
-
                     case 'satelliteSize':
                         satellites.forEach(satellite => {
                             satellite.style.width = `${state.satelliteSize}px`;
@@ -666,7 +636,6 @@
                     // Apply current state
                     satellite.style.width = `${state.satelliteSize}px`;
                     satellite.style.height = `${state.satelliteSize}px`;
-                    satellite.style.filter = `blur(${state.blurEffect}px)`;
 
                     const angle = (i / state.satelliteCount) * 2 * Math.PI;
                     satellite.dataset.angle = angle;
@@ -851,9 +820,6 @@
                         case 'satelliteCount':
                             slider.value = 70;
                             break;
-                        case 'blurEffect':
-                            slider.value = 0;
-                            break;
                         case 'innerBoundary':
                             slider.value = 5;
                             break;
@@ -924,22 +890,10 @@
                 createSatelliteCircles();
             });
 
-            function updateBlurEffect() {
-                const blurAmount = parseFloat(sliders.blurEffect.value);
-                document
-                    .querySelectorAll('.circle-satellite')
-                    .forEach(satellite => {
-                        satellite.style.filter = `blur(${blurAmount}px)`;
-                    });
-                circleMain.style.filter = `blur(${blurAmount * 2}px)`;
-            }
-
-            function getOuterBoundary(mainCircleRadius, satelliteRadius) {
-                const percentage = parseInt(sliders.outerBoundary.value);
-                const minBoundary = mainCircleRadius - satelliteRadius;
-                const maxBoundary = mainCircleRadius + satelliteRadius;
-                const range = maxBoundary - minBoundary;
-                return minBoundary + range * (percentage / 100);
+            function updateGlowColor() {
+                const glowWrapper = document.querySelector('.glow-wrapper');
+                const glowIntensity = state.glowEffect;
+                glowWrapper.style.filter = `drop-shadow(0 0 ${glowIntensity}px rgba(102, 125, 182, 0.5))`;
             }
 
             // Add event listeners for new sliders
@@ -951,18 +905,6 @@
                 'input',
                 createSatelliteCircles
             );
-
-            // Set initial blur to 0
-            sliders.blurEffect.value = '0';
-            updateBlurEffect();
-
-            // Add event listener for glow effect
-            sliders.glowEffect.addEventListener('input', () => {
-                document.getElementById(
-                    'glowEffectValue'
-                ).textContent = `${sliders.glowEffect.value}px`;
-                updateGlowColor();
-            });
 
             // Make sure initial state is applied
             updateGlowColor();
@@ -1002,13 +944,6 @@
 
             // Update timer every second
             setInterval(updateTimer, 1000);
-
-            // Add the missing updateGlowColor function
-            function updateGlowColor() {
-                const glowWrapper = document.querySelector('.glow-wrapper');
-                const glowIntensity = state.glowEffect;
-                glowWrapper.style.filter = `drop-shadow(0 0 ${glowIntensity}px rgba(102, 125, 182, 0.5))`;
-            }
         </script>
     </body>
 </html>

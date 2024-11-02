@@ -258,9 +258,18 @@
             </div>
         </div>
 
-        <button class="settings-button">⚙️</button>
+        <button class="settings-button" title="Settings (Ctrl + /)">☁️</button>
 
         <div class="controls">
+            <div
+                class="control-group"
+                style="text-align: center; margin-bottom: 20px"
+            >
+                <label>Session Time</label>
+                <div id="timer" style="font-size: 24px; font-family: monospace">
+                    00:00:00
+                </div>
+            </div>
             <div class="control-group">
                 <label>Color Theme</label>
                 <div class="theme-options">
@@ -859,13 +868,29 @@
                 });
             });
 
-            // Add toggle functionality for settings
+            // Remove any existing click handlers for the settings button
+            // And replace with this new code:
+
+            // Get references to the elements
             const settingsButton = document.querySelector('.settings-button');
             const controls = document.querySelector('.controls');
 
-            settingsButton.addEventListener('click', () => {
+            // Add click handler for the settings button
+            settingsButton.addEventListener('click', event => {
                 const isVisible = controls.style.display === 'block';
                 controls.style.display = isVisible ? 'none' : 'block';
+                event.stopPropagation();
+            });
+
+            // Add click handler for the document
+            document.addEventListener('click', event => {
+                // If clicking inside the controls panel, don't close it
+                if (event.target.closest('.controls')) {
+                    return;
+                }
+
+                // Clicking anywhere else closes the controls
+                controls.style.display = 'none';
             });
 
             // Optional: Recreate satellites when window resizes to maintain positioning
@@ -969,6 +994,42 @@
 
             // Make sure initial state is applied
             updateGlowColor();
+
+            // Add keyboard shortcut handler for settings toggle
+            document.addEventListener('keydown', event => {
+                // Check for Ctrl + / (forward slash)
+                if (event.ctrlKey && event.key === '/') {
+                    event.preventDefault(); // Prevent default browser behavior
+                    const isVisible = controls.style.display === 'block';
+                    controls.style.display = isVisible ? 'none' : 'block';
+                }
+
+                // Check for Escape key
+                if (event.key === 'Escape') {
+                    controls.style.display = 'none';
+                }
+            });
+
+            // Add this near your other initialization code
+            let startTime = Date.now();
+
+            function updateTimer() {
+                const elapsedTime = Date.now() - startTime;
+                const hours = Math.floor(elapsedTime / (1000 * 60 * 60));
+                const minutes = Math.floor(
+                    (elapsedTime % (1000 * 60 * 60)) / (1000 * 60)
+                );
+                const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+
+                const timeString = [hours, minutes, seconds]
+                    .map(unit => unit.toString().padStart(2, '0'))
+                    .join(':');
+
+                document.getElementById('timer').textContent = timeString;
+            }
+
+            // Update timer every second
+            setInterval(updateTimer, 1000);
         </script>
     </body>
 </html>

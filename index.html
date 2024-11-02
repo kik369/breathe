@@ -658,6 +658,7 @@
                 );
                 const mainCircleRadius = 200;
                 const satelliteRadius = parseFloat(sliders.satelliteSize.value);
+                const currentBlur = parseFloat(sliders.blurEffect.value);
 
                 // Updated constraints with dynamic outer boundary
                 const minDistance = mainCircleRadius - satelliteRadius;
@@ -686,9 +687,10 @@
                     satellite.dataset.lateralPhaseOffset =
                         Math.random() * 2 * Math.PI;
 
-                    // Apply size directly to the satellite
+                    // Apply size and blur effect immediately
                     satellite.style.width = `${satelliteRadius * 2}px`;
                     satellite.style.height = `${satelliteRadius * 2}px`;
+                    satellite.style.filter = `blur(${currentBlur}px)`;
 
                     container.appendChild(satellite);
                 }

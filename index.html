@@ -3,6 +3,11 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
+            :root {
+                --inhale-color: #667db6;
+                --exhale-color: #0082c8;
+            }
+
             body {
                 display: flex;
                 flex-direction: column;
@@ -157,23 +162,26 @@
 
             @keyframes colorChange {
                 0% {
-                    background: #667db6;
+                    background: var(--inhale-color);
                 }
                 40% {
-                    background: #0082c8;
+                    background: var(--exhale-color);
                 }
                 60% {
-                    background: #0082c8;
+                    background: var(--exhale-color);
                 }
                 100% {
-                    background: #667db6;
+                    background: var(--inhale-color);
                 }
             }
 
             /* Add styles for the glow wrapper */
             .glow-wrapper {
                 position: relative;
-                filter: drop-shadow(0 0 20px rgba(102, 125, 182, 0.5));
+                filter: drop-shadow(
+                    0 0 20px
+                        color-mix(in srgb, var(--inhale-color) 50%, transparent)
+                );
                 /* or alternatively use box-shadow */
                 /* box-shadow: 0 0 40px rgba(102, 125, 182, 0.5); */
             }
@@ -374,7 +382,7 @@
                         max="10"
                         value="4"
                     />
-                    <span class="value-display" id="inhaleValue">4s</span>
+                    <span class="value-display" id="inhaleTimeValue">4s</span>
                 </div>
             </div>
             <div class="control-group">
@@ -400,7 +408,7 @@
                         max="10"
                         value="4"
                     />
-                    <span class="value-display" id="exhaleValue">4s</span>
+                    <span class="value-display" id="exhaleTimeValue">4s</span>
                 </div>
             </div>
             <div class="control-group">
@@ -424,10 +432,10 @@
                         id="satelliteCount"
                         min="10"
                         max="200"
-                        value="100"
+                        value="75"
                     />
                     <span class="value-display" id="satelliteCountValue"
-                        >100</span
+                        >75</span
                     >
                 </div>
             </div>
@@ -454,10 +462,10 @@
                         id="outerBoundary"
                         min="0"
                         max="100"
-                        value="10"
+                        value="15"
                     />
                     <span class="value-display" id="outerBoundaryValue"
-                        >10%</span
+                        >15%</span
                     >
                 </div>
             </div>
@@ -547,9 +555,9 @@
                 inhalePause: 1,
                 exhaleTime: 4,
                 exhalePause: 1,
-                satelliteCount: 70,
+                satelliteCount: 75,
                 innerBoundary: 5,
-                outerBoundary: 10,
+                outerBoundary: 15,
                 leftBoundary: 10,
                 rightBoundary: 10,
                 satelliteSize: 34,
@@ -564,6 +572,11 @@
                     case 'leftBoundary':
                     case 'rightBoundary':
                         return '%';
+                    case 'satelliteSize':
+                    case 'glowEffect':
+                        return 'px';
+                    case 'satelliteCount':
+                        return '';
                     default:
                         return 's'; // For time-related sliders
                 }
@@ -571,6 +584,7 @@
 
             function updateState(key, value) {
                 state[key] = value;
+
                 // Update the display value with the correct suffix
                 const displayElement = document.getElementById(`${key}Value`);
                 if (displayElement) {
@@ -803,46 +817,10 @@
 
             function initializeSliders() {
                 Object.entries(sliders).forEach(([key, slider]) => {
-                    // Set initial values
-                    switch (key) {
-                        case 'inhaleTime':
-                            slider.value = 4;
-                            break;
-                        case 'inhalePause':
-                            slider.value = 1;
-                            break;
-                        case 'exhaleTime':
-                            slider.value = 4;
-                            break;
-                        case 'exhalePause':
-                            slider.value = 1;
-                            break;
-                        case 'satelliteCount':
-                            slider.value = 70;
-                            break;
-                        case 'innerBoundary':
-                            slider.value = 5;
-                            break;
-                        case 'outerBoundary':
-                            slider.value = 10;
-                            break;
-                        case 'leftBoundary':
-                            slider.value = 10;
-                            break;
-                        case 'rightBoundary':
-                            slider.value = 10;
-                            break;
-                        case 'satelliteSize':
-                            slider.value = 34;
-                            break;
-                        case 'glowEffect':
-                            slider.value = 50;
-                            break;
-                        default:
-                            slider.value = state[key];
-                    }
+                    // Set initial values from state
+                    slider.value = state[key];
 
-                    // Update display
+                    // Update display immediately
                     updateState(key, parseFloat(slider.value));
 
                     // Add input event listener for real-time updates
@@ -893,7 +871,10 @@
             function updateGlowColor() {
                 const glowWrapper = document.querySelector('.glow-wrapper');
                 const glowIntensity = state.glowEffect;
-                glowWrapper.style.filter = `drop-shadow(0 0 ${glowIntensity}px rgba(102, 125, 182, 0.5))`;
+                const currentColor = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--inhale-color')
+                    .trim();
+                glowWrapper.style.filter = `drop-shadow(0 0 ${glowIntensity}px ${currentColor}80)`; // 80 is for 50% opacity
             }
 
             // Add event listeners for new sliders
@@ -944,6 +925,66 @@
 
             // Update timer every second
             setInterval(updateTimer, 1000);
+
+            // Add theme definitions
+            const themes = {
+                theme1: {
+                    inhale: '#667db6',
+                    exhale: '#0082c8',
+                },
+                theme2: {
+                    inhale: '#cac531',
+                    exhale: '#f3f9a7',
+                },
+                theme3: {
+                    inhale: '#f5af19',
+                    exhale: '#f12711',
+                },
+            };
+
+            // Add color handling functions
+            function updateThemeColors(themeName, swapColors = false) {
+                const theme = themes[themeName];
+                if (!theme) return;
+
+                const root = document.documentElement;
+                if (swapColors) {
+                    root.style.setProperty('--inhale-color', theme.exhale);
+                    root.style.setProperty('--exhale-color', theme.inhale);
+                } else {
+                    root.style.setProperty('--inhale-color', theme.inhale);
+                    root.style.setProperty('--exhale-color', theme.exhale);
+                }
+
+                updateGlowColor(); // Update glow effect with new colors
+            }
+
+            // Add event listeners for theme switching and color swapping
+            document.querySelectorAll('input[name="theme"]').forEach(radio => {
+                radio.addEventListener('change', e => {
+                    const swapColors =
+                        document.getElementById('colorSwap').checked;
+                    updateThemeColors(e.target.value, swapColors);
+                });
+            });
+
+            document
+                .getElementById('colorSwap')
+                .addEventListener('change', e => {
+                    const selectedTheme = document.querySelector(
+                        'input[name="theme"]:checked'
+                    ).value;
+                    updateThemeColors(selectedTheme, e.target.checked);
+                });
+
+            // Initialize theme on page load
+            document.addEventListener('DOMContentLoaded', () => {
+                const initialTheme = document.querySelector(
+                    'input[name="theme"]:checked'
+                ).value;
+                updateThemeColors(initialTheme, false);
+                // ... rest of your initialization code ...
+            });
         </script>
     </body>
 </html>

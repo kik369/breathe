@@ -874,11 +874,16 @@
                         const sizeVariation = parseFloat(
                             satellite.dataset.sizeVariation
                         );
+
+                        // Calculate the base size with variation
+                        const baseSize = baseSatelliteSize * sizeVariation;
+
+                        // Apply the main circle's scale to the satellite's size
                         const scaledSatelliteSize =
-                            baseSatelliteSize * sizeVariation;
+                            baseSize * (currentScale / 1.2); // Divide by initial scale (1.2)
                         const satelliteRadius = scaledSatelliteSize / 2;
 
-                        // Update satellite size
+                        // Update satellite size with scale
                         satellite.style.width = `${scaledSatelliteSize}px`;
                         satellite.style.height = `${scaledSatelliteSize}px`;
 

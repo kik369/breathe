@@ -609,6 +609,22 @@
                             >
                         </div>
                     </div>
+                    <div class="control-group">
+                        <label>Size Variation (%)</label>
+                        <div class="slider-container">
+                            <input
+                                type="range"
+                                id="sizeVariation"
+                                min="0"
+                                max="100"
+                                value="10"
+                                step="1"
+                            />
+                            <span class="value-display" id="sizeVariationValue"
+                                >10%</span
+                            >
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -629,6 +645,7 @@
                 rightBoundary: document.getElementById('rightBoundary'),
                 satelliteSize: document.getElementById('satelliteSize'),
                 glowEffect: document.getElementById('glowEffect'),
+                sizeVariation: document.getElementById('sizeVariation'),
             };
 
             // Create our state object with default values
@@ -644,6 +661,7 @@
                 rightBoundary: 10,
                 satelliteSize: 34,
                 glowEffect: 50,
+                sizeVariation: 10,
             };
 
             // Then declare all our functions
@@ -659,6 +677,8 @@
                         return 'px';
                     case 'satelliteCount':
                         return '';
+                    case 'sizeVariation':
+                        return '%';
                     default:
                         return 's'; // For time-related sliders
                 }
@@ -729,9 +749,22 @@
                     // Remove any individual color animations from satellites
                     satellite.style.animation = 'none';
 
-                    // Apply current state
-                    satellite.style.width = `${state.satelliteSize}px`;
-                    satellite.style.height = `${state.satelliteSize}px`;
+                    // Calculate variation range based on slider (0-100%)
+                    const maxVariation = state.sizeVariation / 100;
+                    // Random value between (1 - maxVariation) and (1 + maxVariation)
+                    const sizeVariation =
+                        1 + (Math.random() * 2 - 1) * maxVariation;
+
+                    // Ensure minimum size is at least 1px
+                    const baseSize = state.satelliteSize;
+                    const randomizedSize = Math.max(
+                        1,
+                        baseSize * sizeVariation
+                    );
+
+                    satellite.style.width = `${randomizedSize}px`;
+                    satellite.style.height = `${randomizedSize}px`;
+                    satellite.dataset.sizeVariation = sizeVariation;
 
                     const angle = (i / state.satelliteCount) * 2 * Math.PI;
                     satellite.dataset.angle = angle;
@@ -744,7 +777,7 @@
                 }
 
                 updateSatellitePositions();
-                startColorSync(); // Make sure color sync starts after creating satellites
+                startColorSync();
             }
 
             function updateSatellitePositions() {
@@ -766,9 +799,14 @@
                     .querySelectorAll('.circle-satellite')
                     .forEach(satellite => {
                         const angle = parseFloat(satellite.dataset.angle);
-                        const satelliteRadius = scaledSatelliteSize / 2; // Use scaled size
+                        const sizeVariation = parseFloat(
+                            satellite.dataset.sizeVariation
+                        );
+                        const scaledSatelliteSize =
+                            baseSatelliteSize * currentScale * sizeVariation;
+                        const satelliteRadius = scaledSatelliteSize / 2;
 
-                        // Update satellite size
+                        // Update satellite size with variation
                         satellite.style.width = `${scaledSatelliteSize}px`;
                         satellite.style.height = `${scaledSatelliteSize}px`;
 
@@ -1081,6 +1119,16 @@
             document.addEventListener('DOMContentLoaded', () => {
                 initializeCollapsibleSections();
                 // ... rest of your initialization code ...
+            });
+
+            // Make sure the size variation slider triggers satellite recreation
+            document.addEventListener('DOMContentLoaded', () => {
+                // ... existing initialization ...
+
+                // Add specific handler for size variation
+                sliders.sizeVariation.addEventListener('input', () => {
+                    createSatelliteCircles();
+                });
             });
         </script>
     </body>

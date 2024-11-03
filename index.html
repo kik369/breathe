@@ -520,6 +520,32 @@
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <!-- Add this new preset selector at the top -->
+                    <div class="control-group">
+                        <div class="theme-options">
+                            <label class="theme-option">
+                                <input
+                                    type="radio"
+                                    name="advancedPreset"
+                                    value="preset1"
+                                    checked
+                                />
+                                <span class="theme-preview">
+                                    Preset 1 (Default)
+                                </span>
+                            </label>
+                            <label class="theme-option">
+                                <input
+                                    type="radio"
+                                    name="advancedPreset"
+                                    value="preset2"
+                                />
+                                <span class="theme-preview"> Preset 2 </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Existing advanced settings controls continue here -->
                     <div class="control-group">
                         <label>Number of Satellites (10-200)</label>
                         <div class="slider-container">
@@ -1223,6 +1249,75 @@
                         restoreDefaultSettings
                     );
                 }
+            });
+
+            // Add this near your other constants/state definitions
+            const advancedPresets = {
+                preset1: {
+                    satelliteCount: 100,
+                    innerBoundary: 7,
+                    outerBoundary: 17,
+                    leftBoundary: 10,
+                    rightBoundary: 10,
+                    satelliteSize: 34,
+                    glowEffect: 50,
+                    sizeVariation: 10,
+                },
+                preset2: {
+                    satelliteCount: 10,
+                    innerBoundary: 30,
+                    outerBoundary: 100,
+                    leftBoundary: 50,
+                    rightBoundary: 50,
+                    satelliteSize: 10,
+                    glowEffect: 50,
+                    sizeVariation: 100,
+                },
+            };
+
+            // Add this function to handle preset switching
+            function updateAdvancedSettings(presetName) {
+                const preset = advancedPresets[presetName];
+                if (!preset) return;
+
+                // Update each setting
+                Object.entries(preset).forEach(([key, value]) => {
+                    // Update the state
+                    state[key] = value;
+
+                    // Update the slider value
+                    const slider = sliders[key];
+                    if (slider) {
+                        slider.value = value;
+                    }
+
+                    // Update the display value
+                    const displayElement = document.getElementById(
+                        `${key}Value`
+                    );
+                    if (displayElement) {
+                        const suffix = getSuffix(key);
+                        displayElement.textContent = `${value}${suffix}`;
+                    }
+                });
+
+                // Apply the changes
+                createSatelliteCircles();
+                updateGlowColor();
+            }
+
+            // Add this to your initialization code
+            document.addEventListener('DOMContentLoaded', () => {
+                // ... existing initialization code ...
+
+                // Add event listeners for preset switching
+                document
+                    .querySelectorAll('input[name="advancedPreset"]')
+                    .forEach(radio => {
+                        radio.addEventListener('change', e => {
+                            updateAdvancedSettings(e.target.value);
+                        });
+                    });
             });
         </script>
     </body>

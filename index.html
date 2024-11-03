@@ -328,6 +328,22 @@
             .collapsible-section.active .toggle-icon {
                 transform: rotate(180deg);
             }
+
+            .restore-defaults-btn {
+                width: 100%;
+                padding: 8px 12px;
+                background: #203a43;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: background-color 0.3s ease;
+            }
+
+            .restore-defaults-btn:hover {
+                background: #2c5364;
+            }
         </style>
     </head>
     <body>
@@ -624,6 +640,14 @@
                                 >10%</span
                             >
                         </div>
+                    </div>
+                    <div class="control-group" style="margin-top: 15px">
+                        <button
+                            id="restoreDefaults"
+                            class="restore-defaults-btn"
+                        >
+                            Restore Default Settings
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1144,6 +1168,61 @@
                 sliders.sizeVariation.addEventListener('input', () => {
                     createSatelliteCircles();
                 });
+            });
+
+            // Add this to your script section, near the other state-related code
+            const DEFAULT_STATE = {
+                satelliteCount: 75,
+                innerBoundary: 5,
+                outerBoundary: 15,
+                leftBoundary: 10,
+                rightBoundary: 10,
+                satelliteSize: 34,
+                glowEffect: 50,
+                sizeVariation: 10,
+            };
+
+            // Add this function to handle resetting to defaults
+            function restoreDefaultSettings() {
+                // Update state and UI for each advanced setting
+                Object.entries(DEFAULT_STATE).forEach(([key, value]) => {
+                    // Update the state
+                    state[key] = value;
+
+                    // Update the slider value
+                    const slider = sliders[key];
+                    if (slider) {
+                        slider.value = value;
+                    }
+
+                    // Update the display value
+                    const displayElement = document.getElementById(
+                        `${key}Value`
+                    );
+                    if (displayElement) {
+                        const suffix = getSuffix(key);
+                        displayElement.textContent = `${value}${suffix}`;
+                    }
+                });
+
+                // Recreate satellites with default values
+                createSatelliteCircles();
+                updateGlowColor();
+            }
+
+            // Add this to your initialization code
+            document.addEventListener('DOMContentLoaded', () => {
+                // ... existing initialization code ...
+
+                // Add click handler for restore defaults button
+                const restoreDefaultsBtn =
+                    document.getElementById('restoreDefaults');
+                if (restoreDefaultsBtn) {
+                    restoreDefaultsBtn.addEventListener(
+                        'click',
+                        restoreDefaultSettings
+                    );
+                }
             });
         </script>
     </body>

@@ -714,9 +714,9 @@
                 inhalePause: 1,
                 exhaleTime: 4,
                 exhalePause: 1,
-                satelliteCount: 100,
-                innerBoundary: 1,
-                outerBoundary: 3,
+                satelliteCount: 50,
+                innerBoundary: 2,
+                outerBoundary: 5,
                 leftBoundary: 5,
                 rightBoundary: 5,
                 satelliteSize: 34,
@@ -1070,6 +1070,15 @@
                 updateAnimation();
                 createSatelliteCircles();
                 startColorSync();
+
+                // Ensure preset1 is selected and applied on load
+                const preset1Radio = document.querySelector(
+                    'input[name="advancedPreset"][value="preset1"]'
+                );
+                if (preset1Radio) {
+                    preset1Radio.checked = true;
+                    updateAdvancedSettings('preset1');
+                }
             });
 
             // Remove any existing click handlers for the settings button

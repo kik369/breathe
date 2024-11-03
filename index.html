@@ -599,10 +599,10 @@
                                 id="leftBoundary"
                                 min="0"
                                 max="100"
-                                value="10"
+                                value="5"
                             />
                             <span class="value-display" id="leftBoundaryValue"
-                                >10%</span
+                                >5%</span
                             >
                         </div>
                     </div>
@@ -614,10 +614,10 @@
                                 id="rightBoundary"
                                 min="0"
                                 max="100"
-                                value="10"
+                                value="5"
                             />
                             <span class="value-display" id="rightBoundaryValue"
-                                >10%</span
+                                >5%</span
                             >
                         </div>
                     </div>
@@ -709,8 +709,8 @@
                 satelliteCount: 100,
                 innerBoundary: 1,
                 outerBoundary: 3,
-                leftBoundary: 10,
-                rightBoundary: 10,
+                leftBoundary: 5,
+                rightBoundary: 5,
                 satelliteSize: 34,
                 glowEffect: 50,
                 sizeVariation: 10,
@@ -935,8 +935,8 @@
                     outer:
                         minPossibleRadius +
                         (radiusRange * state.outerBoundary) / 100,
-                    left: (-satelliteRadius * state.leftBoundary) / 100,
-                    right: (satelliteRadius * state.rightBoundary) / 100,
+                    left: (-5 * satelliteRadius * state.leftBoundary) / 100,
+                    right: (5 * satelliteRadius * state.rightBoundary) / 100,
                 };
             }
 
@@ -1201,8 +1201,8 @@
                 satelliteCount: 100,
                 innerBoundary: 1,
                 outerBoundary: 3,
-                leftBoundary: 10,
-                rightBoundary: 10,
+                leftBoundary: 5,
+                rightBoundary: 5,
                 satelliteSize: 34,
                 glowEffect: 50,
                 sizeVariation: 10,
@@ -1257,8 +1257,8 @@
                     satelliteCount: 100,
                     innerBoundary: 1,
                     outerBoundary: 3,
-                    leftBoundary: 10,
-                    rightBoundary: 10,
+                    leftBoundary: 5,
+                    rightBoundary: 5,
                     satelliteSize: 34,
                     glowEffect: 50,
                     sizeVariation: 10,

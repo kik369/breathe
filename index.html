@@ -562,10 +562,10 @@
                                 id="satelliteCount"
                                 min="10"
                                 max="200"
-                                value="75"
+                                value="50"
                             />
                             <span class="value-display" id="satelliteCountValue"
-                                >75</span
+                                >50</span
                             >
                         </div>
                     </div>
@@ -577,10 +577,10 @@
                                 id="innerBoundary"
                                 min="0"
                                 max="100"
-                                value="1"
+                                value="3"
                             />
                             <span class="value-display" id="innerBoundaryValue"
-                                >1%</span
+                                >3%</span
                             >
                         </div>
                     </div>
@@ -592,10 +592,10 @@
                                 id="outerBoundary"
                                 min="0"
                                 max="100"
-                                value="3"
+                                value="5"
                             />
                             <span class="value-display" id="outerBoundaryValue"
-                                >3%</span
+                                >5%</span
                             >
                         </div>
                     </div>
@@ -893,7 +893,7 @@
                             satelliteRadius
                         );
 
-                        // Random movement calculations
+                        // Calculate radial position (distance from center)
                         const time = Date.now() / 1000;
                         const radialPhase = parseFloat(
                             satellite.dataset.radialPhase
@@ -902,7 +902,6 @@
                             satellite.dataset.lateralPhase
                         );
 
-                        // Calculate radial position (distance from center)
                         const radialOscillation = Math.sin(time + radialPhase);
                         const radius =
                             boundaries.inner +
@@ -910,25 +909,25 @@
                                 (radialOscillation + 1)) /
                                 2;
 
-                        // Calculate lateral movement along the arc
-                        const lateralOscillation = Math.sin(
-                            time * 0.7 + lateralPhase
-                        );
-                        const lateralOffset =
-                            ((boundaries.right - boundaries.left) *
-                                (lateralOscillation + 1)) /
-                            2;
+                        // Only apply lateral movement if boundaries are greater than 0
+                        let lateralOffset = 0;
+                        if (boundaries.left > 0 || boundaries.right > 0) {
+                            const lateralOscillation = Math.sin(
+                                time * 0.7 + lateralPhase
+                            );
+                            // Convert degrees to radians for the lateral movement
+                            lateralOffset =
+                                ((lateralOscillation + 1) / 2) *
+                                    (boundaries.right + boundaries.left) -
+                                boundaries.left;
+                            lateralOffset = (lateralOffset * Math.PI) / 180; // Convert to radians
+                        }
 
-                        // Add lateral offset to the base angle
-                        const adjustedAngle =
-                            angle + (lateralOffset * Math.PI) / 180;
-
-                        // Calculate position relative to the breathing circle's center
+                        // Calculate final position
+                        const adjustedAngle = angle + lateralOffset;
                         const x = Math.cos(adjustedAngle) * radius;
                         const y = Math.sin(adjustedAngle) * radius;
 
-                        // Center the satellite by translating from the center of the container
-                        // and accounting for the satellite's own size
                         satellite.style.transform = `translate3d(calc(50% + ${x}px - ${satelliteRadius}px), calc(50% + ${y}px - ${satelliteRadius}px), 0)`;
                     });
 
@@ -936,10 +935,41 @@
             }
 
             function calculateBoundaries(mainCircleRadius, satelliteRadius) {
+                // Get viewport dimensions
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                // Calculate the center point of the breathing circle
+                const breathingCircle =
+                    document.querySelector('.breathing-circle');
+                const rect = breathingCircle.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                // Calculate maximum allowed radius to stay within viewport (with margin)
+                const margin = 20; // pixels from viewport edge
+                const maxRadiusX = Math.min(
+                    centerX - margin,
+                    viewportWidth - centerX - margin
+                );
+                const maxRadiusY = Math.min(
+                    centerY - margin,
+                    viewportHeight - centerY - margin
+                );
+                const maxAllowedRadius = Math.min(maxRadiusX, maxRadiusY);
+
+                // Calculate the base radius range
                 const minPossibleRadius = mainCircleRadius - satelliteRadius;
-                const maxPossibleRadius =
-                    mainCircleRadius + 10 * satelliteRadius;
+                const maxPossibleRadius = Math.min(
+                    maxAllowedRadius - satelliteRadius,
+                    mainCircleRadius + 10 * satelliteRadius
+                );
+
+                // Adjust the radius range based on viewport constraints
                 const radiusRange = maxPossibleRadius - minPossibleRadius;
+
+                // Calculate the maximum lateral movement range (in degrees)
+                const maxLateralRange = 30; // Maximum degrees of lateral movement
 
                 return {
                     inner:
@@ -948,10 +978,16 @@
                     outer:
                         minPossibleRadius +
                         (radiusRange * state.outerBoundary) / 100,
-                    left: (-5 * satelliteRadius * state.leftBoundary) / 100,
-                    right: (5 * satelliteRadius * state.rightBoundary) / 100,
+                    // Convert percentage to actual degrees, allowing for zero movement
+                    left: (maxLateralRange * state.leftBoundary) / 100,
+                    right: (maxLateralRange * state.rightBoundary) / 100,
                 };
             }
+
+            // Add window resize handler to recalculate boundaries
+            window.addEventListener('resize', () => {
+                requestAnimationFrame(updateSatellitePositions);
+            });
 
             function startColorSync() {
                 function syncColors() {
@@ -1211,9 +1247,9 @@
 
             // Add this to your script section, near the other state-related code
             const DEFAULT_STATE = {
-                satelliteCount: 100,
-                innerBoundary: 1,
-                outerBoundary: 3,
+                satelliteCount: 50,
+                innerBoundary: 3,
+                outerBoundary: 5,
                 leftBoundary: 5,
                 rightBoundary: 5,
                 satelliteSize: 34,
@@ -1252,9 +1288,9 @@
             // Add this near your other constants/state definitions
             const advancedPresets = {
                 preset1: {
-                    satelliteCount: 100,
-                    innerBoundary: 1,
-                    outerBoundary: 3,
+                    satelliteCount: 50,
+                    innerBoundary: 3,
+                    outerBoundary: 5,
                     leftBoundary: 5,
                     rightBoundary: 5,
                     satelliteSize: 34,

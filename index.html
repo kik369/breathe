@@ -1075,6 +1075,19 @@
                 initializeSliders();
                 updateAnimation();
                 createSatelliteCircles();
+
+                // Detect screen size and select preset
+                const isMobile = window.innerWidth <= 768; // Typical breakpoint for mobile
+                const selectedPreset = isMobile ? 'preset4' : 'preset1';
+
+                // Set the radio button for the selected preset
+                const presetRadio = document.querySelector(
+                    `input[name="advancedPreset"][value="${selectedPreset}"]`
+                );
+                if (presetRadio) {
+                    presetRadio.checked = true;
+                    updateAdvancedSettings(selectedPreset);
+                }
             });
 
             // Remove any existing click handlers for the settings button

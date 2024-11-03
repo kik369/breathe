@@ -52,6 +52,8 @@
                 pointer-events: none;
                 border: none;
                 box-shadow: none;
+                will-change: transform;
+                transform: translate3d(0, 0, 0);
             }
 
             .controls {
@@ -822,17 +824,14 @@
             function updateSatellitePositions() {
                 const container = breathingCircle;
                 const containerSize = container.offsetWidth;
-                const centerX = containerSize / 2;
-                const centerY = containerSize / 2;
 
                 // Get the current scale of the main circle
                 const transform = window.getComputedStyle(circleMain).transform;
                 const matrix = new DOMMatrix(transform);
                 const currentScale = matrix.m11 || 1;
 
-                const mainCircleRadius = (containerSize / 2) * currentScale;
+                const mainCircleRadius = containerSize / 2;
                 const baseSatelliteSize = state.satelliteSize;
-                const scaledSatelliteSize = baseSatelliteSize * currentScale;
 
                 document
                     .querySelectorAll('.circle-satellite')
@@ -842,16 +841,16 @@
                             satellite.dataset.sizeVariation
                         );
                         const scaledSatelliteSize =
-                            baseSatelliteSize * currentScale * sizeVariation;
+                            baseSatelliteSize * sizeVariation;
                         const satelliteRadius = scaledSatelliteSize / 2;
 
-                        // Update satellite size with variation
+                        // Update satellite size
                         satellite.style.width = `${scaledSatelliteSize}px`;
                         satellite.style.height = `${scaledSatelliteSize}px`;
 
                         // Calculate boundaries based on current scale
                         const boundaries = calculateBoundaries(
-                            mainCircleRadius,
+                            mainCircleRadius * currentScale,
                             satelliteRadius
                         );
 
@@ -885,13 +884,13 @@
                         const adjustedAngle =
                             angle + (lateralOffset * Math.PI) / 180;
 
-                        // Calculate final position using adjusted angle
-                        const x = Math.cos(adjustedAngle) * radius + centerX;
-                        const y = Math.sin(adjustedAngle) * radius + centerY;
+                        // Calculate position relative to the breathing circle's center
+                        const x = Math.cos(adjustedAngle) * radius;
+                        const y = Math.sin(adjustedAngle) * radius;
 
-                        // Update position
-                        satellite.style.left = `${x - satelliteRadius}px`;
-                        satellite.style.top = `${y - satelliteRadius}px`;
+                        // Center the satellite by translating from the center of the container
+                        // and accounting for the satellite's own size
+                        satellite.style.transform = `translate3d(calc(50% + ${x}px - ${satelliteRadius}px), calc(50% + ${y}px - ${satelliteRadius}px), 0)`;
                     });
 
                 requestAnimationFrame(updateSatellitePositions);

@@ -550,6 +550,15 @@
                                 />
                                 <span class="theme-preview"> Preset 3 </span>
                             </label>
+                            <label class="theme-option">
+                                <!-- New preset 4 -->
+                                <input
+                                    type="radio"
+                                    name="advancedPreset"
+                                    value="preset4"
+                                />
+                                <span class="theme-preview">Preset 4</span>
+                            </label>
                         </div>
                     </div>
 
@@ -577,10 +586,10 @@
                                 id="innerBoundary"
                                 min="0"
                                 max="100"
-                                value="2"
+                                value="1"
                             />
                             <span class="value-display" id="innerBoundaryValue"
-                                >2%</span
+                                >1%</span
                             >
                         </div>
                     </div>
@@ -592,10 +601,10 @@
                                 id="outerBoundary"
                                 min="0"
                                 max="100"
-                                value="5"
+                                value="3"
                             />
                             <span class="value-display" id="outerBoundaryValue"
-                                >5%</span
+                                >3%</span
                             >
                         </div>
                     </div>
@@ -1285,8 +1294,8 @@
             const advancedPresets = {
                 preset1: {
                     satelliteCount: 60,
-                    innerBoundary: 2,
-                    outerBoundary: 5,
+                    innerBoundary: 1,
+                    outerBoundary: 3,
                     leftBoundary: 5,
                     rightBoundary: 5,
                     satelliteSize: 40,
@@ -1312,6 +1321,16 @@
                     satelliteSize: 1,
                     glowEffect: 50,
                     sizeVariation: 0,
+                },
+                preset4: {
+                    satelliteCount: 60,
+                    innerBoundary: 10,
+                    outerBoundary: 15,
+                    leftBoundary: 5,
+                    rightBoundary: 5,
+                    satelliteSize: 40,
+                    glowEffect: 50,
+                    sizeVariation: 50,
                 },
             };
 

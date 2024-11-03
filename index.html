@@ -562,10 +562,10 @@
                                 id="satelliteCount"
                                 min="10"
                                 max="200"
-                                value="50"
+                                value="70"
                             />
                             <span class="value-display" id="satelliteCountValue"
-                                >50</span
+                                >70</span
                             >
                         </div>
                     </div>
@@ -714,7 +714,7 @@
                 inhalePause: 1,
                 exhaleTime: 4,
                 exhalePause: 1,
-                satelliteCount: 50,
+                satelliteCount: 70,
                 innerBoundary: 2,
                 outerBoundary: 5,
                 leftBoundary: 5,
@@ -1064,21 +1064,11 @@
                 });
             }
 
-            // Make sure sliders are properly initialized when the page loads
+            // Ensure this is called on page load
             document.addEventListener('DOMContentLoaded', () => {
                 initializeSliders();
                 updateAnimation();
                 createSatelliteCircles();
-                startColorSync();
-
-                // Ensure preset1 is selected and applied on load
-                const preset1Radio = document.querySelector(
-                    'input[name="advancedPreset"][value="preset1"]'
-                );
-                if (preset1Radio) {
-                    preset1Radio.checked = true;
-                    updateAdvancedSettings('preset1');
-                }
             });
 
             // Remove any existing click handlers for the settings button
@@ -1256,7 +1246,7 @@
 
             // Add this to your script section, near the other state-related code
             const DEFAULT_STATE = {
-                satelliteCount: 50,
+                satelliteCount: 70,
                 innerBoundary: 2,
                 outerBoundary: 5,
                 leftBoundary: 5,
@@ -1297,7 +1287,7 @@
             // Add this near your other constants/state definitions
             const advancedPresets = {
                 preset1: {
-                    satelliteCount: 50,
+                    satelliteCount: 70,
                     innerBoundary: 2,
                     outerBoundary: 5,
                     leftBoundary: 5,

@@ -729,6 +729,21 @@
                         createSatelliteCircles(); // Recreate with new count
                         break;
 
+                    case 'sizeVariation':
+                        satellites.forEach(satellite => {
+                            const sizeVariation = parseFloat(
+                                satellite.dataset.sizeVariation
+                            );
+                            const baseSize = state.satelliteSize;
+                            const randomizedSize = Math.max(
+                                1,
+                                baseSize * sizeVariation
+                            );
+                            satellite.style.width = `${randomizedSize}px`;
+                            satellite.style.height = `${randomizedSize}px`;
+                        });
+                        break;
+
                     // Boundary changes don't need immediate action as they're used in updateSatellitePositions
                 }
             }

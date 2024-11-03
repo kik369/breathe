@@ -1218,30 +1218,15 @@
 
             // Add this function to handle resetting to defaults
             function restoreDefaultSettings() {
-                // Update state and UI for each advanced setting
-                Object.entries(DEFAULT_STATE).forEach(([key, value]) => {
-                    // Update the state
-                    state[key] = value;
-
-                    // Update the slider value
-                    const slider = sliders[key];
-                    if (slider) {
-                        slider.value = value;
-                    }
-
-                    // Update the display value
-                    const displayElement = document.getElementById(
-                        `${key}Value`
-                    );
-                    if (displayElement) {
-                        const suffix = getSuffix(key);
-                        displayElement.textContent = `${value}${suffix}`;
-                    }
-                });
-
-                // Recreate satellites with default values
-                createSatelliteCircles();
-                updateGlowColor();
+                // Find the preset1 radio button and click it
+                const preset1Radio = document.querySelector(
+                    'input[name="advancedPreset"][value="preset1"]'
+                );
+                if (preset1Radio) {
+                    preset1Radio.checked = true;
+                    // Trigger the change event to apply the preset
+                    preset1Radio.dispatchEvent(new Event('change'));
+                }
             }
 
             // Add this to your initialization code

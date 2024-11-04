@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SVG.js Demo</title>
+        <style>
+            body {
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                    Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+                    'Segoe UI Emoji', 'Segoe UI Symbol';
+            }
+
+            #container {
+                background-color: rgba(15, 32, 39, 1);
+                position: relative;
+                height: 100vh;
+                width: 100%;
+            }
+
+            #drawing {
+                display: block;
+                background-color: rgba(255, 255, 255, 0.03);
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+
+            input[type='range'] {
+                display: block;
+                width: 80%;
+                margin: 20px auto;
+            }
+
+            .slider-container {
+                background-color: rgb(66, 61, 61);
+                padding: 10px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+            }
+
+            .slider-container label {
+                color: white;
+                display: block;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            .settings-icon {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
+                background-color: rgba(66, 61, 61, 0.9);
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+
+            .settings-icon svg {
+                width: 24px;
+                height: 24px;
+                fill: white;
+            }
+
+            .settings-panel {
+                position: fixed;
+                right: 20px;
+                bottom: 70px;
+                width: 300px;
+                background-color: rgb(66, 61, 61);
+                border-radius: 8px;
+                padding: 20px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+                transform: translateX(150%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 999;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+
+            .settings-panel.visible {
+                transform: translateX(0);
+            }
+
+            .settings-panel input[type='range'] {
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            .settings-panel label {
+                color: white;
+                display: block;
+                margin: 10px 0 5px;
+            }
+
+            .settings-panel::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .settings-panel::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+            }
+
+            .settings-panel::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 4px;
+            }
+
+            .settings-panel::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.4);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+            <div id="drawing"></div>
+            <div class="settings-icon" id="settingsToggle">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"
+                    />
+                </svg>
+            </div>
+            <div class="settings-panel" id="settingsPanel">
+                <label for="planetSizeSlider"
+                    >Planet Size: <span id="planetSliderValue">40</span>%</label
+                >
+                <input
+                    type="range"
+                    id="planetSizeSlider"
+                    min="0"
+                    max="100"
+                    value="40"
+                />
+                <label for="satelliteSizeSlider"
+                    >Satellite Size:
+                    <span id="satelliteSizeValue">8</span>%</label
+                >
+                <input
+                    type="range"
+                    id="satelliteSizeSlider"
+                    min="0"
+                    max="100"
+                    value="8"
+                />
+                <label for="satelliteCountSlider"
+                    >Satellites:
+                    <span id="satelliteCountValue">100</span></label
+                >
+                <input
+                    type="range"
+                    id="satelliteCountSlider"
+                    min="0"
+                    max="500"
+                    value="100"
+                />
+                <label for="inhaleSlider"
+                    >Inhale Duration: <span id="inhaleValue">5</span>s</label
+                >
+                <input
+                    type="range"
+                    id="inhaleSlider"
+                    min="0"
+                    max="10"
+                    value="5"
+                    step="0.1"
+                />
+                <label for="holdSlider"
+                    >Hold Duration: <span id="holdValue">1</span>s</label
+                >
+                <input
+                    type="range"
+                    id="holdSlider"
+                    min="0"
+                    max="10"
+                    value="1"
+                    step="0.1"
+                />
+                <label for="exhaleSlider"
+                    >Exhale Duration: <span id="exhaleValue">5</span>s</label
+                >
+                <input
+                    type="range"
+                    id="exhaleSlider"
+                    min="0"
+                    max="10"
+                    value="5"
+                    step="0.1"
+                />
+                <label for="restSlider"
+                    >Rest Duration: <span id="restValue">1</span>s</label
+                >
+                <input
+                    type="range"
+                    id="restSlider"
+                    min="0"
+                    max="10"
+                    value="1"
+                    step="0.1"
+                />
+                <label for="satelliteVarianceSlider"
+                    >Satellite Size Variance:
+                    <span id="satelliteVarianceValue">30</span>%</label
+                >
+                <input
+                    type="range"
+                    id="satelliteVarianceSlider"
+                    min="0"
+                    max="100"
+                    value="30"
+                />
+                <label for="positionVarianceSlider"
+                    >Position Variance:
+                    <span id="positionVarianceValue">10</span>%</label
+                >
+                <input
+                    type="range"
+                    id="positionVarianceSlider"
+                    min="0"
+                    max="100"
+                    value="10"
+                />
+                <label for="planetColorPicker">Planet Color:</label>
+                <input type="color" id="planetColorPicker" value="#667db6" />
+                <label for="satelliteColorPicker">Satellite Color:</label>
+                <input type="color" id="satelliteColorPicker" value="#667db6" />
+            </div>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.2/svg.min.js"></script>
+        <script src="script.js"></script>
+    </body>
+</html>

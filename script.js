@@ -17,7 +17,7 @@ class SVGAnimation {
     }
 
     initElements() {
-        const initialGlowRadius = 50; // Set default glow radius to 50 pixels
+        const initialGlowRadius = 50; //Set default glow radius to 50 pixels
 
         this.planet = this.draw
             .circle(this.size * 0.25)
@@ -249,23 +249,21 @@ class SVGAnimation {
         );
         this.satellites.each((satellite, i) => {
             const baseAngle = this.satelliteBaseAngles[i];
-            satellite.data({
-                currentAngle: baseAngle,
-                baseAngle,
-                targetAngle: baseAngle,
-                startAngle: baseAngle,
-            });
-        });
-
-        this.satellites.each((satellite, i) => {
-            const currentAngle =
-                satellite.data('currentAngle') || this.satelliteBaseAngles[i];
             const sizeVariance =
                 baseSatelliteSize * 4 * sizeVarianceFactor * Math.random();
-            const satelliteSize = baseSatelliteSize + sizeVariance;
-            satellite.size(satelliteSize);
-            const x = this.size / 2 + Math.cos(currentAngle) * planetRadius;
-            const y = this.size / 2 + Math.sin(currentAngle) * planetRadius;
+            const initialSize = baseSatelliteSize + sizeVariance;
+            satellite.data({
+                currentAngle: baseAngle,
+                baseAngle: baseAngle,
+                targetAngle: baseAngle,
+                startAngle: baseAngle,
+                currentSize: initialSize,
+                targetSize: initialSize,
+                startSize: initialSize,
+            });
+            satellite.size(initialSize);
+            const x = this.size / 2 + Math.cos(baseAngle) * planetRadius;
+            const y = this.size / 2 + Math.sin(baseAngle) * planetRadius;
             satellite.center(x, y);
         });
     }
@@ -273,17 +271,25 @@ class SVGAnimation {
     startPulseAnimation() {
         const animate = () => {
             const currentScale = planetSizeSlider.value / 100;
-            const satelliteSize =
+            const baseSatelliteSize =
                 this.size * (satelliteSizeSlider.value / 100) * 0.25;
-            const maxScale = this.getMaxPlanetScale(satelliteSize);
+            const sizeVarianceFactor = satelliteVarianceSlider.value / 100;
+            const maxScale = this.getMaxPlanetScale(baseSatelliteSize);
             const inhaleDuration = parseFloat(inhaleSlider.value) * 1000;
             const holdDuration = parseFloat(holdSlider.value) * 1000;
             const exhaleDuration = parseFloat(exhaleSlider.value) * 1000;
             const restDuration = parseFloat(restSlider.value) * 1000;
             const positionVarianceFactor = positionVarianceSlider.value / 100;
+            const isDynamicSize = document.getElementById(
+                'dynamicSizeVariance'
+            ).checked;
 
-            if (positionVarianceFactor > 0) {
-                this.satellites.each(satellite => {
+            const inhaleHoldDuration = inhaleDuration + holdDuration;
+            const exhaleRestDuration = exhaleDuration + restDuration;
+
+            // Calculate new targets before animation starts
+            this.satellites.each(satellite => {
+                if (positionVarianceFactor > 0) {
                     const currentAngle = satellite.data('currentAngle');
                     const baseAngle = satellite.data('baseAngle');
                     const newTargetAngle = this.getNextPosition(
@@ -295,27 +301,56 @@ class SVGAnimation {
                         targetAngle: newTargetAngle,
                         startAngle: currentAngle,
                     });
-                });
-            }
+                } else {
+                    // Smooth transition to base angle when variance is zero
+                    satellite.data({
+                        targetAngle: satellite.data('baseAngle'),
+                        startAngle: satellite.data('currentAngle'),
+                    });
+                }
 
-            const inhaleHoldDuration = inhaleDuration + holdDuration;
+                if (isDynamicSize) {
+                    const currentSize = satellite.data('currentSize');
+                    const newTargetSize = this.getNextSize(
+                        baseSatelliteSize,
+                        sizeVarianceFactor
+                    );
+                    satellite.data({
+                        targetSize: newTargetSize,
+                        startSize: currentSize,
+                    });
+                }
+            });
+
+            // Inhale + Hold phase
             this.planet
-                .animate(inhaleDuration, 0)
-                .ease('<>')
+                .animate({
+                    ease: '<>',
+                    duration: inhaleDuration,
+                })
                 .size(this.size * maxScale)
                 .during(pos => {
                     const currentPlanetSize = this.planet.width();
                     this.satellites.each(satellite => {
                         const angle =
-                            positionVarianceFactor > 0
-                                ? satellite.data('startAngle') +
-                                  (this.normalizeAngle(
-                                      satellite.data('targetAngle') -
-                                          satellite.data('startAngle')
-                                  ) *
-                                      (pos * inhaleDuration)) /
-                                      inhaleHoldDuration
-                                : satellite.data('baseAngle');
+                            satellite.data('startAngle') +
+                            (this.normalizeAngle(
+                                satellite.data('targetAngle') -
+                                    satellite.data('startAngle')
+                            ) *
+                                (pos * inhaleDuration)) /
+                                inhaleHoldDuration;
+
+                        if (isDynamicSize) {
+                            const currentSize =
+                                satellite.data('startSize') +
+                                ((satellite.data('targetSize') -
+                                    satellite.data('startSize')) *
+                                    (pos * inhaleDuration)) /
+                                    inhaleHoldDuration;
+                            satellite.size(currentSize);
+                        }
+
                         const x =
                             this.size / 2 +
                             Math.cos(angle) * (currentPlanetSize / 2);
@@ -326,85 +361,127 @@ class SVGAnimation {
                     });
                 })
                 .after(() => {
+                    // Hold phase
                     this.planet
-                        .animate(holdDuration, 0)
-                        .ease('<>')
+                        .animate({
+                            ease: '<>',
+                            duration: holdDuration,
+                        })
                         .size(this.size * maxScale)
                         .during(pos => {
-                            if (positionVarianceFactor > 0) {
-                                const currentPlanetSize = this.planet.width();
-                                this.satellites.each(satellite => {
-                                    const angle =
-                                        satellite.data('startAngle') +
-                                        (this.normalizeAngle(
-                                            satellite.data('targetAngle') -
-                                                satellite.data('startAngle')
-                                        ) *
-                                            (inhaleDuration +
-                                                pos * holdDuration)) /
-                                            inhaleHoldDuration;
-                                    const x =
-                                        this.size / 2 +
-                                        Math.cos(angle) *
-                                            (currentPlanetSize / 2);
-                                    const y =
-                                        this.size / 2 +
-                                        Math.sin(angle) *
-                                            (currentPlanetSize / 2);
-                                    satellite.center(x, y);
-                                });
-                            }
+                            const currentPlanetSize = this.planet.width();
+                            this.satellites.each(satellite => {
+                                const angle =
+                                    satellite.data('startAngle') +
+                                    this.normalizeAngle(
+                                        satellite.data('targetAngle') -
+                                            satellite.data('startAngle')
+                                    ) *
+                                        ((inhaleDuration + pos * holdDuration) /
+                                            inhaleHoldDuration);
+
+                                if (isDynamicSize) {
+                                    const currentSize =
+                                        satellite.data('startSize') +
+                                        (satellite.data('targetSize') -
+                                            satellite.data('startSize')) *
+                                            ((inhaleDuration +
+                                                pos * holdDuration) /
+                                                inhaleHoldDuration);
+                                    satellite.size(currentSize);
+                                }
+
+                                const x =
+                                    this.size / 2 +
+                                    Math.cos(angle) * (currentPlanetSize / 2);
+                                const y =
+                                    this.size / 2 +
+                                    Math.sin(angle) * (currentPlanetSize / 2);
+                                satellite.center(x, y);
+                            });
                         })
                         .after(() => {
+                            // Update current values
                             this.satellites.each(satellite => {
-                                if (positionVarianceFactor > 0) {
+                                satellite.data(
+                                    'currentAngle',
+                                    satellite.data('targetAngle')
+                                );
+                                if (isDynamicSize) {
                                     satellite.data(
-                                        'currentAngle',
-                                        satellite.data('targetAngle')
+                                        'currentSize',
+                                        satellite.data('targetSize')
                                     );
                                 }
                             });
-                            if (positionVarianceFactor > 0) {
-                                this.satellites.each(satellite => {
-                                    const currentAngle =
-                                        satellite.data('currentAngle');
-                                    const baseAngle =
-                                        satellite.data('baseAngle');
+
+                            // Calculate new targets for exhale phase
+                            this.satellites.each(satellite => {
+                                if (positionVarianceFactor > 0) {
                                     const newTargetAngle = this.getNextPosition(
-                                        currentAngle,
-                                        baseAngle,
+                                        satellite.data('currentAngle'),
+                                        satellite.data('baseAngle'),
                                         positionVarianceFactor
                                     );
                                     satellite.data({
                                         targetAngle: newTargetAngle,
-                                        startAngle: currentAngle,
+                                        startAngle:
+                                            satellite.data('currentAngle'),
                                     });
-                                });
-                            }
-                            const exhaleRestDuration =
-                                exhaleDuration + restDuration;
+                                } else {
+                                    // Smooth transition to base angle when variance is zero
+                                    satellite.data({
+                                        targetAngle:
+                                            satellite.data('baseAngle'),
+                                        startAngle:
+                                            satellite.data('currentAngle'),
+                                    });
+                                }
+                                if (isDynamicSize) {
+                                    const newTargetSize = this.getNextSize(
+                                        baseSatelliteSize,
+                                        sizeVarianceFactor
+                                    );
+                                    satellite.data({
+                                        targetSize: newTargetSize,
+                                        startSize:
+                                            satellite.data('currentSize'),
+                                    });
+                                }
+                            });
+
+                            // Exhale + Rest phase
                             this.planet
-                                .animate(exhaleDuration, 0)
-                                .ease('<>')
+                                .animate({
+                                    ease: '<>',
+                                    duration: exhaleDuration,
+                                })
                                 .size(this.size * currentScale)
                                 .during(pos => {
                                     const currentPlanetSize =
                                         this.planet.width();
                                     this.satellites.each(satellite => {
                                         const angle =
-                                            positionVarianceFactor > 0
-                                                ? satellite.data('startAngle') +
-                                                  (this.normalizeAngle(
-                                                      satellite.data(
-                                                          'targetAngle'
-                                                      ) -
-                                                          satellite.data(
-                                                              'startAngle'
-                                                          )
-                                                  ) *
-                                                      (pos * exhaleDuration)) /
-                                                      exhaleRestDuration
-                                                : satellite.data('baseAngle');
+                                            satellite.data('startAngle') +
+                                            (this.normalizeAngle(
+                                                satellite.data('targetAngle') -
+                                                    satellite.data('startAngle')
+                                            ) *
+                                                (pos * exhaleDuration)) /
+                                                exhaleRestDuration;
+
+                                        if (isDynamicSize) {
+                                            const currentSize =
+                                                satellite.data('startSize') +
+                                                ((satellite.data('targetSize') -
+                                                    satellite.data(
+                                                        'startSize'
+                                                    )) *
+                                                    (pos * exhaleDuration)) /
+                                                    exhaleRestDuration;
+                                            satellite.size(currentSize);
+                                        }
+
                                         const x =
                                             this.size / 2 +
                                             Math.cos(angle) *
@@ -417,56 +494,77 @@ class SVGAnimation {
                                     });
                                 })
                                 .after(() => {
+                                    // Rest phase
                                     this.planet
-                                        .animate(restDuration, 0)
-                                        .ease('<>')
+                                        .animate({
+                                            ease: '<>',
+                                            duration: restDuration,
+                                        })
                                         .size(this.size * currentScale)
                                         .during(pos => {
-                                            if (positionVarianceFactor > 0) {
-                                                const currentPlanetSize =
-                                                    this.planet.width();
-                                                this.satellites.each(
-                                                    satellite => {
-                                                        const angle =
-                                                            satellite.data(
-                                                                'startAngle'
-                                                            ) +
-                                                            (this.normalizeAngle(
-                                                                satellite.data(
-                                                                    'targetAngle'
-                                                                ) -
-                                                                    satellite.data(
-                                                                        'startAngle'
-                                                                    )
-                                                            ) *
-                                                                (exhaleDuration +
-                                                                    pos *
-                                                                        restDuration)) /
-                                                                exhaleRestDuration;
-                                                        const x =
-                                                            this.size / 2 +
-                                                            Math.cos(angle) *
-                                                                (currentPlanetSize /
-                                                                    2);
-                                                        const y =
-                                                            this.size / 2 +
-                                                            Math.sin(angle) *
-                                                                (currentPlanetSize /
-                                                                    2);
-                                                        satellite.center(x, y);
-                                                    }
-                                                );
-                                            }
-                                        })
-                                        .after(() => {
+                                            const currentPlanetSize =
+                                                this.planet.width();
                                             this.satellites.each(satellite => {
-                                                if (
-                                                    positionVarianceFactor > 0
-                                                ) {
+                                                const angle =
                                                     satellite.data(
-                                                        'currentAngle',
+                                                        'startAngle'
+                                                    ) +
+                                                    this.normalizeAngle(
                                                         satellite.data(
                                                             'targetAngle'
+                                                        ) -
+                                                            satellite.data(
+                                                                'startAngle'
+                                                            )
+                                                    ) *
+                                                        ((exhaleDuration +
+                                                            pos *
+                                                                restDuration) /
+                                                            exhaleRestDuration);
+
+                                                if (isDynamicSize) {
+                                                    const currentSize =
+                                                        satellite.data(
+                                                            'startSize'
+                                                        ) +
+                                                        (satellite.data(
+                                                            'targetSize'
+                                                        ) -
+                                                            satellite.data(
+                                                                'startSize'
+                                                            )) *
+                                                            ((exhaleDuration +
+                                                                pos *
+                                                                    restDuration) /
+                                                                exhaleRestDuration);
+                                                    satellite.size(currentSize);
+                                                }
+
+                                                const x =
+                                                    this.size / 2 +
+                                                    Math.cos(angle) *
+                                                        (currentPlanetSize / 2);
+                                                const y =
+                                                    this.size / 2 +
+                                                    Math.sin(angle) *
+                                                        (currentPlanetSize / 2);
+                                                satellite.center(x, y);
+                                            });
+                                        })
+                                        .after(() => {
+                                            // Update final values
+                                            this.satellites.each(satellite => {
+                                                satellite.data(
+                                                    'currentAngle',
+                                                    satellite.data(
+                                                        'targetAngle'
+                                                    )
+                                                );
+                                                if (isDynamicSize) {
+                                                    satellite.data(
+                                                        'currentSize',
+                                                        satellite.data(
+                                                            'targetSize'
                                                         )
                                                     );
                                                 }
@@ -497,6 +595,11 @@ class SVGAnimation {
             baseSatelliteSize * (1 + (4 * satelliteVarianceSlider.value) / 100);
         const maxRadius = this.size / 2;
         return (2 * maxRadius - maxSatelliteSize) / this.size;
+    }
+
+    getNextSize(baseSize, varianceFactor) {
+        const maxVariance = baseSize * 4 * varianceFactor;
+        return baseSize + Math.random() * maxVariance;
     }
 }
 

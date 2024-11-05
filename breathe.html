@@ -141,6 +141,36 @@
             .settings-panel::-webkit-scrollbar-thumb:hover {
                 background: rgba(255, 255, 255, 0.4);
             }
+
+            .tooltip {
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+                color: #667db6;
+                margin-left: 5px;
+            }
+
+            .tooltip .tooltiptext {
+                visibility: hidden;
+                width: 220px;
+                background-color: #333;
+                color: #fff;
+                text-align: center;
+                border-radius: 6px;
+                padding: 5px;
+                position: absolute;
+                z-index: 1;
+                bottom: 125%;
+                left: 50%;
+                margin-left: -110px;
+                opacity: 0;
+                transition: opacity 0.3s;
+            }
+
+            .tooltip:hover .tooltiptext {
+                visibility: visible;
+                opacity: 1;
+            }
         </style>
     </head>
     <body>
@@ -245,27 +275,43 @@
                     value="35"
                     step="1"
                 />
+                <div style="margin: 10px 0">
+                    <input type="checkbox" id="dynamicSizeVariance" checked />
+                    <label for="dynamicSizeVariance" style="display: inline"
+                        >Dynamic Size</label
+                    >
+                    <span class="tooltip"
+                        >ℹ️
+                        <span class="tooltiptext"
+                            >Dynamic Size adjusts the satellite size variance
+                            over time, creating a breathing effect. The
+                            Satellite Size Variance slider sets the boundary for
+                            this effect. Higher values mean more
+                            variation.</span
+                        >
+                    </span>
+                </div>
                 <label for="positionVarianceSlider"
                     >Position Variance:
-                    <span id="positionVarianceValue">10</span>%</label
+                    <span id="positionVarianceValue">15</span>%</label
                 >
                 <input
                     type="range"
                     id="positionVarianceSlider"
                     min="0"
                     max="100"
-                    value="10"
+                    value="15"
                     step="1"
                 />
                 <label for="glowRadiusSlider">
-                    Glow Radius: <span id="glowRadiusValue">50</span>px
+                    Glow Radius: <span id="glowRadiusValue">30</span>px
                 </label>
                 <input
                     type="range"
                     id="glowRadiusSlider"
                     min="0"
                     max="100"
-                    value="50"
+                    value="30"
                     step="1"
                 />
                 <label for="planetColorPicker">Planet Color:</label>

@@ -21,11 +21,26 @@
                 position: relative;
                 height: 100vh;
                 width: 100%;
+                overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
 
             #drawing {
                 display: block;
-                background-color: rgba(15, 32, 39, 1);
+                background-color: transparent;
+                position: absolute;
+                width: 200%;
+                height: 200%;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                overflow: visible;
+                pointer-events: none;
+            }
+
+            #drawing svg {
                 position: absolute;
                 top: 50%;
                 left: 50%;
@@ -68,6 +83,7 @@
                 justify-content: center;
                 align-items: center;
                 z-index: 1000;
+                pointer-events: auto;
             }
 
             .settings-icon svg {
@@ -90,6 +106,7 @@
                 z-index: 999;
                 max-height: 80vh;
                 overflow-y: auto;
+                pointer-events: auto;
             }
 
             .settings-panel.visible {
@@ -162,14 +179,14 @@
                 />
                 <label for="satelliteCountSlider"
                     >Satellites:
-                    <span id="satelliteCountValue">250</span></label
+                    <span id="satelliteCountValue">300</span></label
                 >
                 <input
                     type="range"
                     id="satelliteCountSlider"
                     min="0"
                     max="500"
-                    value="250"
+                    value="300"
                     step="1"
                 />
                 <label for="inhaleSlider"
@@ -240,6 +257,17 @@
                     value="10"
                     step="1"
                 />
+                <label for="glowRadiusSlider">
+                    Glow Radius: <span id="glowRadiusValue">50</span>px
+                </label>
+                <input
+                    type="range"
+                    id="glowRadiusSlider"
+                    min="0"
+                    max="100"
+                    value="50"
+                    step="1"
+                />
                 <label for="planetColorPicker">Planet Color:</label>
                 <input type="color" id="planetColorPicker" value="#667db6" />
                 <label for="satelliteColorPicker">Satellite Color:</label>
@@ -247,6 +275,7 @@
             </div>
         </div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.2/svg.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.filter.js@3.0.8/dist/svg.filter.js"></script>
         <script src="script.js"></script>
     </body>
 </html>

@@ -1,17 +1,36 @@
 class SVGAnimation {
     constructor() {
         this.size = Math.min(window.innerWidth, window.innerHeight) * 0.8;
-        this.draw = SVG().addTo('#drawing').size(this.size, this.size);
+        const padding = this.size * 0.5;
+        this.draw = SVG()
+            .addTo('#drawing')
+            .size(this.size + padding * 2, this.size + padding * 2)
+            .viewbox(
+                -padding,
+                -padding,
+                this.size + padding * 2,
+                this.size + padding * 2
+            );
         this.initElements();
         this.initEventListeners();
         this.startPulseAnimation();
     }
 
     initElements() {
+        const initialGlowRadius = 50; // Set default glow radius to 50 pixels
+
         this.planet = this.draw
             .circle(this.size * 0.25)
             .fill(planetColorPicker.value)
-            .center(this.size / 2, this.size / 2);
+            .center(this.size / 2, this.size / 2)
+            .filterWith(function (add) {
+                const blur = add.gaussianBlur(initialGlowRadius);
+                const secondBlur = add.gaussianBlur(initialGlowRadius * 1.67);
+                add.blend(add.source, blur);
+                add.blend(add.source, secondBlur);
+                this.size('600%', '600%').move('-250%', '-250%');
+            });
+
         this.satelliteGroup = this.draw.group();
         this.satellites = new SVG.List([]);
         this.satelliteBaseAngles = [];
@@ -20,6 +39,19 @@ class SVGAnimation {
             this.updatePlanetSize(0.4),
             this.updateSatelliteSize(0.2)
         );
+    }
+
+    updatePlanetGlow(color, radius = null) {
+        this.planet.fill(color);
+        const filter = this.planet.filterer();
+
+        if (radius !== null) {
+            const blurs = filter.find('feGaussianBlur');
+            if (blurs.length >= 2) {
+                blurs[0].attr('stdDeviation', radius);
+                blurs[1].attr('stdDeviation', radius * 1.67);
+            }
+        }
     }
 
     initEventListeners() {
@@ -33,12 +65,23 @@ class SVGAnimation {
             [restSlider, 'restValue'],
             [satelliteVarianceSlider, 'satelliteVarianceValue'],
             [positionVarianceSlider, 'positionVarianceValue'],
+            [glowRadiusSlider, 'glowRadiusValue'],
         ];
 
         sliders.forEach(([slider, valueId]) => {
             slider.addEventListener('input', e => {
                 document.getElementById(valueId).textContent = e.target.value;
             });
+        });
+
+        glowRadiusSlider.addEventListener('input', e => {
+            const radius = parseInt(e.target.value);
+            this.updatePlanetGlow(this.planet.fill(), radius);
+        });
+
+        planetColorPicker.addEventListener('input', e => {
+            const radius = parseInt(glowRadiusSlider.value);
+            this.updatePlanetGlow(e.target.value, radius);
         });
 
         planetSizeSlider.addEventListener('input', e =>
@@ -55,9 +98,6 @@ class SVGAnimation {
             this.toggleSettingsPanel()
         );
         document.addEventListener('click', e => this.hideSettingsPanel(e));
-        planetColorPicker.addEventListener('input', e =>
-            this.planet.fill(e.target.value)
-        );
         satelliteColorPicker.addEventListener('input', e =>
             this.updateSatelliteColors(e.target.value)
         );
@@ -112,7 +152,16 @@ class SVGAnimation {
     onWindowResize() {
         if (this.animationTimer) clearInterval(this.animationTimer);
         this.size = Math.min(window.innerWidth, window.innerHeight) * 0.8;
-        this.draw.size(this.size, this.size);
+        const padding = this.size * 0.5;
+        this.draw
+            .size(this.size + padding * 2, this.size + padding * 2)
+            .viewbox(
+                -padding,
+                -padding,
+                this.size + padding * 2,
+                this.size + padding * 2
+            );
+
         const planetRadius = this.updatePlanetSize(
             planetSizeSlider.value / 100
         );

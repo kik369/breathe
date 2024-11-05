@@ -16,9 +16,9 @@ class SVGAnimation {
         this.satellites = new SVG.List([]);
         this.satelliteBaseAngles = [];
         this.updateSatellites(
-            parseInt(satelliteCountSlider.value),
-            this.updatePlanetSize(planetSizeSlider.value / 100),
-            this.updateSatelliteSize(satelliteSizeSlider.value / 100)
+            250,
+            this.updatePlanetSize(0.4),
+            this.updateSatelliteSize(0.2)
         );
     }
 

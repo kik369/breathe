@@ -17,11 +17,11 @@ class SVGAnimation {
     }
 
     initElements() {
-        const initialGlowRadius = 50; //Set default glow radius to 50 pixels
+        const initialGlowRadius = 50; // Set default glow radius to 50 pixels
 
         this.planet = this.draw
             .circle(this.size * 0.25)
-            .fill(planetColorPicker.value)
+            .fill('#667db6') // Default color
             .center(this.size / 2, this.size / 2)
             .filterWith(function (add) {
                 const blur = add.gaussianBlur(initialGlowRadius);
@@ -79,11 +79,6 @@ class SVGAnimation {
             this.updatePlanetGlow(this.planet.fill(), radius);
         });
 
-        planetColorPicker.addEventListener('input', e => {
-            const radius = parseInt(glowRadiusSlider.value);
-            this.updatePlanetGlow(e.target.value, radius);
-        });
-
         planetSizeSlider.addEventListener('input', e =>
             this.onPlanetSizeChange(e)
         );
@@ -98,9 +93,6 @@ class SVGAnimation {
             this.toggleSettingsPanel()
         );
         document.addEventListener('click', e => this.hideSettingsPanel(e));
-        satelliteColorPicker.addEventListener('input', e =>
-            this.updateSatelliteColors(e.target.value)
-        );
     }
 
     onPlanetSizeChange(e) {
@@ -236,7 +228,7 @@ class SVGAnimation {
         while (this.satellites.length < count) {
             const satellite = this.satelliteGroup
                 .circle(baseSatelliteSize)
-                .fill(satelliteColorPicker.value);
+                .fill('#667db6');
             this.satellites.push(satellite);
         }
         while (this.satellites.length > count) {
@@ -287,6 +279,9 @@ class SVGAnimation {
             const inhaleHoldDuration = inhaleDuration + holdDuration;
             const exhaleRestDuration = exhaleDuration + restDuration;
 
+            const startColor = { r: 102, g: 125, b: 182 }; // #667db6
+            const endColor = { r: 0, g: 130, b: 200 }; // #0082c8
+
             // Calculate new targets before animation starts
             this.satellites.each(satellite => {
                 if (positionVarianceFactor > 0) {
@@ -331,6 +326,14 @@ class SVGAnimation {
                 .size(this.size * maxScale)
                 .during(pos => {
                     const currentPlanetSize = this.planet.width();
+                    const color = this.interpolateColor(
+                        startColor,
+                        endColor,
+                        pos
+                    );
+                    this.updatePlanetGlow(
+                        `rgb(${color.r}, ${color.g}, ${color.b})`
+                    );
                     this.satellites.each(satellite => {
                         const angle =
                             satellite.data('startAngle') +
@@ -358,6 +361,9 @@ class SVGAnimation {
                             this.size / 2 +
                             Math.sin(angle) * (currentPlanetSize / 2);
                         satellite.center(x, y);
+                        satellite.fill(
+                            `rgb(${color.r}, ${color.g}, ${color.b})`
+                        );
                     });
                 })
                 .after(() => {
@@ -370,6 +376,14 @@ class SVGAnimation {
                         .size(this.size * maxScale)
                         .during(pos => {
                             const currentPlanetSize = this.planet.width();
+                            const color = this.interpolateColor(
+                                startColor,
+                                endColor,
+                                1 // Hold at end color
+                            );
+                            this.updatePlanetGlow(
+                                `rgb(${color.r}, ${color.g}, ${color.b})`
+                            );
                             this.satellites.each(satellite => {
                                 const angle =
                                     satellite.data('startAngle') +
@@ -398,6 +412,9 @@ class SVGAnimation {
                                     this.size / 2 +
                                     Math.sin(angle) * (currentPlanetSize / 2);
                                 satellite.center(x, y);
+                                satellite.fill(
+                                    `rgb(${color.r}, ${color.g}, ${color.b})`
+                                );
                             });
                         })
                         .after(() => {
@@ -460,6 +477,14 @@ class SVGAnimation {
                                 .during(pos => {
                                     const currentPlanetSize =
                                         this.planet.width();
+                                    const color = this.interpolateColor(
+                                        endColor,
+                                        startColor,
+                                        pos
+                                    );
+                                    this.updatePlanetGlow(
+                                        `rgb(${color.r}, ${color.g}, ${color.b})`
+                                    );
                                     this.satellites.each(satellite => {
                                         const angle =
                                             satellite.data('startAngle') +
@@ -491,6 +516,9 @@ class SVGAnimation {
                                             Math.sin(angle) *
                                                 (currentPlanetSize / 2);
                                         satellite.center(x, y);
+                                        satellite.fill(
+                                            `rgb(${color.r}, ${color.g}, ${color.b})`
+                                        );
                                     });
                                 })
                                 .after(() => {
@@ -504,6 +532,14 @@ class SVGAnimation {
                                         .during(pos => {
                                             const currentPlanetSize =
                                                 this.planet.width();
+                                            const color = this.interpolateColor(
+                                                endColor,
+                                                startColor,
+                                                1 // Rest at start color
+                                            );
+                                            this.updatePlanetGlow(
+                                                `rgb(${color.r}, ${color.g}, ${color.b})`
+                                            );
                                             this.satellites.each(satellite => {
                                                 const angle =
                                                     satellite.data(
@@ -549,6 +585,9 @@ class SVGAnimation {
                                                     Math.sin(angle) *
                                                         (currentPlanetSize / 2);
                                                 satellite.center(x, y);
+                                                satellite.fill(
+                                                    `rgb(${color.r}, ${color.g}, ${color.b})`
+                                                );
                                             });
                                         })
                                         .after(() => {
@@ -576,6 +615,19 @@ class SVGAnimation {
                 });
         };
         animate();
+    }
+
+    interpolateColor(startColor, endColor, factor) {
+        const r = Math.round(
+            startColor.r + (endColor.r - startColor.r) * factor
+        );
+        const g = Math.round(
+            startColor.g + (endColor.g - startColor.g) * factor
+        );
+        const b = Math.round(
+            startColor.b + (endColor.b - startColor.b) * factor
+        );
+        return { r, g, b };
     }
 
     normalizeAngle(angle) {

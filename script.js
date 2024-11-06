@@ -206,7 +206,6 @@ class SVGAnimation {
     updateSatelliteSize(scale) {
         const planetScale = planetSizeSlider.value / 100;
         const planetSize = this.size * planetScale;
-        const planetRadius = planetSize / 2;
         const maxSatelliteSize = this.size - planetSize;
         const requestedSize = this.size * scale * 0.25;
         const constrainedSize = Math.min(requestedSize, maxSatelliteSize);
@@ -223,7 +222,6 @@ class SVGAnimation {
 
     updateSatellites(count, planetRadius, baseSatelliteSize) {
         const sizeVarianceFactor = satelliteVarianceSlider.value / 100;
-        const positionVarianceFactor = positionVarianceSlider.value / 100;
 
         while (this.satellites.length < count) {
             const satellite = this.satelliteGroup

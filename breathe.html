@@ -73,17 +73,24 @@
                 position: fixed;
                 bottom: 20px;
                 right: 20px;
+                background: #203a43;
+                border: none;
+                border-radius: 50%;
                 width: 40px;
                 height: 40px;
-                background-color: rgba(15, 32, 39, 0.9);
-                box-shadow: 0 0 5px rgba(102, 125, 182, 0.3);
-                border-radius: 50%;
                 cursor: pointer;
-                display: flex;
-                justify-content: center;
-                align-items: center;
                 z-index: 1000;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 pointer-events: auto;
+            }
+
+            .settings-icon:hover {
+                background: #2c5364;
+                transform: scale(1.1);
             }
 
             .settings-icon svg {

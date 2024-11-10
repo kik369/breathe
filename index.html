@@ -182,16 +182,29 @@
                             step="1"
                         />
 
-                        <label for="positionVarianceSlider"
-                            >Position Variance:
-                            <span id="positionVarianceValue">15</span>%</label
-                        >
+                        <label for="lateralVarianceSlider">
+                            Orbital Position Variance:
+                            <span id="lateralVarianceValue">15</span>%
+                        </label>
                         <input
                             type="range"
-                            id="positionVarianceSlider"
+                            id="lateralVarianceSlider"
                             min="0"
                             max="100"
                             value="15"
+                            step="1"
+                        />
+
+                        <label for="radialVarianceSlider">
+                            Radial Position Variance:
+                            <span id="radialVarianceValue">0</span>%
+                        </label>
+                        <input
+                            type="range"
+                            id="radialVarianceSlider"
+                            min="0"
+                            max="100"
+                            value="0"
                             step="1"
                         />
 
@@ -213,6 +226,21 @@
                                     sets the boundary for this effect. Higher
                                     values mean more variation.</span
                                 >
+                            </span>
+                        </div>
+
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="dynamicRadialVariance" />
+                            <label for="dynamicRadialVariance"
+                                >Dynamic Radial Variance</label
+                            >
+                            <span class="tooltip">
+                                ℹ️
+                                <span class="tooltiptext">
+                                    Dynamic Radial Variance adjusts the
+                                    satellite radial position variance over
+                                    time, creating a breathing effect.
+                                </span>
                             </span>
                         </div>
                     </div>

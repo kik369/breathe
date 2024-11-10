@@ -1,1396 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <style>
-            :root {
-                --inhale-color: #667db6;
-                --exhale-color: #0082c8;
-            }
-
-            body {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                margin: 0;
-                background-color: #0f2027;
-                color: white;
-                font-family: Arial, sans-serif;
-                padding: 3.5rem;
-                box-sizing: border-box;
-                overflow: hidden;
-            }
-
-            .breathing-circle {
-                position: relative;
-                width: 20vmin;
-                height: 20vmin;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                max-width: calc(100vw - 7rem);
-                max-height: calc(100vh - 7rem);
-            }
-
-            .circle {
-                position: absolute;
-                border-radius: 50%;
-            }
-
-            .circle-main {
-                width: 100%;
-                height: 100%;
-                animation: breatheScale 8s infinite ease-in-out,
-                    colorChange 8s infinite ease-in-out;
-            }
-
-            .circle-satellite {
-                position: absolute;
-                border-radius: 50%;
-                pointer-events: none;
-                border: none;
-                box-shadow: none;
-                will-change: transform;
-                transform: translate3d(0, 0, 0);
-            }
-
-            .controls {
-                position: fixed;
-                bottom: 40px;
-                right: 40px;
-                background: rgba(0, 0, 0, 0.7);
-                padding: 20px;
-                border-radius: 15px;
-                width: 300px;
-                display: none;
-                z-index: 100;
-            }
-
-            .control-group {
-                margin: 10px 0;
-            }
-
-            .control-group label {
-                display: block;
-                margin-bottom: 5px;
-                font-size: 14px;
-            }
-
-            .slider-container {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-
-            input[type='range'] {
-                flex-grow: 1;
-                height: 8px;
-                background: #333;
-                border-radius: 4px;
-                appearance: none;
-            }
-
-            input[type='range']::-webkit-slider-thumb {
-                appearance: none;
-                width: 16px;
-                height: 16px;
-                background: #4aa1ff;
-                border-radius: 50%;
-                cursor: pointer;
-            }
-
-            .value-display {
-                min-width: 30px;
-                text-align: right;
-                font-size: 14px;
-            }
-
-            .settings-button {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: #203a43;
-                border: none;
-                border-radius: 50%;
-                width: 40px;
-                height: 40px;
-                cursor: pointer;
-                z-index: 101;
-                transition: all 0.3s ease;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-
-                /* Center the emoji */
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 20px; /* Adjust emoji size */
-                line-height: 1;
-                padding: 0; /* Remove default button padding */
-            }
-
-            .settings-button:hover {
-                background: #2c5364;
-                transform: scale(1.1);
-            }
-
-            .settings-button svg {
-                width: 24px;
-                height: 24px;
-                fill: #203a43; /* Changed from white to a darker shade */
-            }
-
-            /* Separate scale and color animations */
-            @keyframes breatheScale {
-                0% {
-                    transform: scale(0.4);
-                }
-                40% {
-                    transform: scale(0.9);
-                }
-                60% {
-                    transform: scale(0.9);
-                }
-                100% {
-                    transform: scale(0.4);
-                }
-            }
-
-            /* Unified color animation for ALL circles */
-            .circle {
-                animation: colorChange 8s infinite ease-in-out;
-            }
-
-            @keyframes colorChange {
-                0% {
-                    background: var(--inhale-color);
-                }
-                40% {
-                    background: var(--exhale-color);
-                }
-                60% {
-                    background: var(--exhale-color);
-                }
-                100% {
-                    background: var(--inhale-color);
-                }
-            }
-
-            /* Add styles for the glow wrapper */
-            .glow-wrapper {
-                position: relative;
-                filter: drop-shadow(
-                    0 0 20px
-                        color-mix(in srgb, var(--inhale-color) 50%, transparent)
-                );
-                /* or alternatively use box-shadow */
-                /* box-shadow: 0 0 40px rgba(102, 125, 182, 0.5); */
-            }
-
-            /* Add styles for the theme selector */
-            .theme-select {
-                width: 100%;
-                padding: 5px;
-                background: #203a43;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-            }
-
-            .theme-select:focus {
-                outline: none;
-                box-shadow: 0 0 0 2px rgba(74, 161, 255, 0.3);
-            }
-
-            /* Add styles for the swap toggle */
-            .color-swap-container {
-                margin-top: 8px;
-                display: flex;
-                align-items: center;
-            }
-
-            .swap-toggle {
-                display: flex;
-                align-items: center;
-                cursor: pointer;
-            }
-
-            .swap-toggle input {
-                margin-right: 8px;
-            }
-
-            .toggle-label {
-                font-size: 12px;
-                color: #fff;
-            }
-
-            .theme-options {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                margin-top: 8px;
-            }
-
-            .theme-option {
-                display: flex;
-                align-items: center;
-                cursor: pointer;
-                padding: 8px;
-                border-radius: 4px;
-                background: rgba(255, 255, 255, 0.1);
-            }
-
-            .theme-option:hover {
-                background: rgba(255, 255, 255, 0.15);
-            }
-
-            .color-box {
-                display: inline-block;
-                width: 12px;
-                height: 12px;
-                margin: 0 4px;
-                border-radius: 2px;
-            }
-
-            .theme-preview {
-                display: flex;
-                align-items: center;
-                margin-left: 8px;
-                font-size: 14px;
-            }
-
-            @media (max-width: 600px) {
-                .breathing-circle {
-                    width: 32vmin;
-                    height: 32vmin;
-                }
-
-                @keyframes breatheScale {
-                    0% {
-                        transform: scale(0.5);
-                    }
-                    40% {
-                        transform: scale(0.9);
-                    }
-                    60% {
-                        transform: scale(0.9);
-                    }
-                    100% {
-                        transform: scale(0.5);
-                    }
-                }
-
-                .circle-satellite {
-                    width: min(20px, 5vmin);
-                    height: min(20px, 5vmin);
-                }
-            }
-
-            .collapsible-section {
-                margin-bottom: 15px;
-                border-radius: 8px;
-                overflow: hidden;
-                background: rgba(255, 255, 255, 0.05);
-            }
-
-            .section-header {
-                padding: 12px 15px;
-                background: rgba(255, 255, 255, 0.1);
-                cursor: pointer;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                font-weight: 500;
-                transition: background-color 0.3s ease;
-            }
-
-            .section-header:hover {
-                background: rgba(255, 255, 255, 0.15);
-            }
-
-            .toggle-icon {
-                transition: transform 0.3s ease;
-            }
-
-            .section-content {
-                max-height: 0;
-                overflow: hidden;
-                transition: max-height 0.3s ease-out;
-                padding: 0 15px;
-            }
-
-            .collapsible-section.active .section-content {
-                max-height: 1000px; /* Adjust based on content */
-                padding: 15px;
-            }
-
-            .collapsible-section.active .toggle-icon {
-                transform: rotate(180deg);
-            }
-
-            .restore-defaults-btn {
-                width: 100%;
-                padding: 8px 12px;
-                background: #203a43;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-                transition: background-color 0.3s ease;
-            }
-
-            .restore-defaults-btn:hover {
-                background: #2c5364;
-            }
-        </style>
+        <title>SVG.js Demo</title>
+        <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
-        <div class="glow-wrapper">
-            <div class="breathing-circle">
-                <div class="circle circle-main"></div>
-                <!-- Satellites will be added via JavaScript -->
+        <div id="container">
+            <div id="drawing"></div>
+            <div class="settings-icon" id="settingsToggle">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"
+                    />
+                </svg>
             </div>
-        </div>
-
-        <button class="settings-button" title="Settings (Ctrl + /)">️☁️</button>
-
-        <div class="controls">
-            <div
-                class="control-group"
-                style="text-align: center; margin-bottom: 20px"
-            >
-                <label>Session Time</label>
-                <div id="timer" style="font-size: 24px; font-family: monospace">
-                    00:00:00
-                </div>
-            </div>
-
-            <!-- New collapsible section -->
-            <div class="collapsible-section">
-                <div class="section-header">
-                    <span>Color Theme</span>
-                    <span class="toggle-icon">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="theme-options">
-                        <label class="theme-option">
-                            <input
-                                type="radio"
-                                name="theme"
-                                value="theme1"
-                                checked
-                            />
-                            <span class="theme-preview">
-                                Theme 1
-                                <span
-                                    class="color-box"
-                                    style="background: #667db6"
-                                ></span>
-                                #667db6 →
-                                <span
-                                    class="color-box"
-                                    style="background: #0082c8"
-                                ></span>
-                                #0082c8
-                            </span>
-                        </label>
-                        <label class="theme-option">
-                            <input type="radio" name="theme" value="theme2" />
-                            <span class="theme-preview">
-                                Theme 2
-                                <span
-                                    class="color-box"
-                                    style="background: #cac531"
-                                ></span>
-                                #CAC531 →
-                                <span
-                                    class="color-box"
-                                    style="background: #f3f9a7"
-                                ></span>
-                                #F3F9A7
-                            </span>
-                        </label>
-                        <label class="theme-option">
-                            <input type="radio" name="theme" value="theme3" />
-                            <span class="theme-preview">
-                                Theme 3
-                                <span
-                                    class="color-box"
-                                    style="background: #f5af19"
-                                ></span>
-                                #f5af19 →
-                                <span
-                                    class="color-box"
-                                    style="background: #f12711"
-                                ></span>
-                                #f12711
-                            </span>
-                        </label>
-                    </div>
-                    <div class="color-swap-container">
-                        <label class="swap-toggle">
-                            <input type="checkbox" id="colorSwap" />
-                            <span class="toggle-label"
-                                >Swap Inhale/Exhale Colors</span
-                            >
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Add more collapsible sections as needed -->
-            <div class="collapsible-section">
-                <div class="section-header">
-                    <span>Timing Controls</span>
-                    <span class="toggle-icon">▼</span>
-                </div>
-                <div class="section-content">
-                    <!-- Group the timing controls -->
-                    <div class="control-group">
-                        <label>Inhale Duration (seconds)</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="inhaleTime"
-                                min="1"
-                                max="10"
-                                value="4"
-                            />
-                            <span class="value-display" id="inhaleTimeValue"
-                                >4s</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Inhale Pause (seconds)</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="inhalePause"
-                                min="0"
-                                max="5"
-                                value="1"
-                            />
-                            <span class="value-display" id="inhalePauseValue"
-                                >1s</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Exhale Duration (seconds)</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="exhaleTime"
-                                min="1"
-                                max="10"
-                                value="4"
-                            />
-                            <span class="value-display" id="exhaleTimeValue"
-                                >4s</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Exhale Pause (seconds)</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="exhalePause"
-                                min="0"
-                                max="5"
-                                value="1"
-                            />
-                            <span class="value-display" id="exhalePauseValue"
-                                >1s</span
-                            >
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Add new collapsible section for advanced settings -->
-            <div class="collapsible-section">
-                <div class="section-header">
-                    <span>Advanced Settings</span>
-                    <span class="toggle-icon">▼</span>
-                </div>
-                <div class="section-content">
-                    <!-- Add this new preset selector at the top -->
-                    <div class="control-group">
-                        <div class="theme-options">
-                            <label class="theme-option">
-                                <input
-                                    type="radio"
-                                    name="advancedPreset"
-                                    value="preset1"
-                                    checked
-                                />
-                                <span class="theme-preview">
-                                    Preset 1 (Default)
-                                </span>
-                            </label>
-                            <label class="theme-option">
-                                <input
-                                    type="radio"
-                                    name="advancedPreset"
-                                    value="preset2"
-                                />
-                                <span class="theme-preview"> Preset 2 </span>
-                            </label>
-                            <label class="theme-option">
-                                <input
-                                    type="radio"
-                                    name="advancedPreset"
-                                    value="preset3"
-                                />
-                                <span class="theme-preview"> Preset 3 </span>
-                            </label>
-                            <label class="theme-option">
-                                <!-- New preset 4 -->
-                                <input
-                                    type="radio"
-                                    name="advancedPreset"
-                                    value="preset4"
-                                />
-                                <span class="theme-preview">Preset 4</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Existing advanced settings controls continue here -->
-                    <div class="control-group">
-                        <label>Number of Satellites (10-200)</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="satelliteCount"
-                                min="10"
-                                max="200"
-                                value="15"
-                            />
-                            <span class="value-display" id="satelliteCountValue"
-                                >15</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Inner Boundary</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="innerBoundary"
-                                min="0"
-                                max="100"
-                                value="50"
-                            />
-                            <span class="value-display" id="innerBoundaryValue"
-                                >50%</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Outer Boundary</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="outerBoundary"
-                                min="0"
-                                max="100"
-                                value="100"
-                            />
-                            <span class="value-display" id="outerBoundaryValue"
-                                >100%</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Left Boundary</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="leftBoundary"
-                                min="0"
-                                max="100"
-                                value="100"
-                            />
-                            <span class="value-display" id="leftBoundaryValue"
-                                >100%</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Right Boundary</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="rightBoundary"
-                                min="0"
-                                max="100"
-                                value="100"
-                            />
-                            <span class="value-display" id="rightBoundaryValue"
-                                >100%</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Satellite Size (radius in px)</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="satelliteSize"
-                                min="1"
-                                max="65"
-                                value="6"
-                            />
-                            <span class="value-display" id="satelliteSizeValue"
-                                >6px</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Glow Intensity (px)</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="glowEffect"
-                                min="0"
-                                max="50"
-                                value="50"
-                            />
-                            <span class="value-display" id="glowEffectValue"
-                                >50px</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Size Variation (%)</label>
-                        <div class="slider-container">
-                            <input
-                                type="range"
-                                id="sizeVariation"
-                                min="0"
-                                max="100"
-                                value="30"
-                            />
-                            <span class="value-display" id="sizeVariationValue"
-                                >30%</span
-                            >
-                        </div>
-                    </div>
-                    <div class="control-group" style="margin-top: 15px">
-                        <button
-                            id="restoreDefaults"
-                            class="restore-defaults-btn"
+            <div class="settings-panel" id="settingsPanel">
+                <label for="planetSizeSlider"
+                    >Planet Size: <span id="planetSliderValue">40</span>%</label
+                >
+                <input
+                    type="range"
+                    id="planetSizeSlider"
+                    min="0"
+                    max="100"
+                    value="40"
+                    step="1"
+                />
+                <label for="satelliteSizeSlider"
+                    >Satellite Size:
+                    <span id="satelliteSizeValue">20</span>%</label
+                >
+                <input
+                    type="range"
+                    id="satelliteSizeSlider"
+                    min="0"
+                    max="100"
+                    value="20"
+                    step="1"
+                />
+                <label for="satelliteCountSlider"
+                    >Satellites:
+                    <span id="satelliteCountValue">300</span></label
+                >
+                <input
+                    type="range"
+                    id="satelliteCountSlider"
+                    min="0"
+                    max="500"
+                    value="300"
+                    step="1"
+                />
+                <label for="inhaleSlider"
+                    >Inhale Duration: <span id="inhaleValue">5</span>s</label
+                >
+                <input
+                    type="range"
+                    id="inhaleSlider"
+                    min="0"
+                    max="10"
+                    value="5"
+                    step="1"
+                />
+                <label for="holdSlider"
+                    >Hold Duration: <span id="holdValue">1</span>s</label
+                >
+                <input
+                    type="range"
+                    id="holdSlider"
+                    min="0"
+                    max="10"
+                    value="1"
+                    step="1"
+                />
+                <label for="exhaleSlider"
+                    >Exhale Duration: <span id="exhaleValue">5</span>s</label
+                >
+                <input
+                    type="range"
+                    id="exhaleSlider"
+                    min="0"
+                    max="10"
+                    value="5"
+                    step="1"
+                />
+                <label for="restSlider"
+                    >Rest Duration: <span id="restValue">1</span>s</label
+                >
+                <input
+                    type="range"
+                    id="restSlider"
+                    min="0"
+                    max="10"
+                    value="1"
+                    step="1"
+                />
+                <label for="satelliteVarianceSlider"
+                    >Satellite Size Variance:
+                    <span id="satelliteVarianceValue">35</span>%</label
+                >
+                <input
+                    type="range"
+                    id="satelliteVarianceSlider"
+                    min="0"
+                    max="100"
+                    value="35"
+                    step="1"
+                />
+                <div style="margin: 10px 0">
+                    <input type="checkbox" id="dynamicSizeVariance" checked />
+                    <label for="dynamicSizeVariance" style="display: inline"
+                        >Dynamic Size</label
+                    >
+                    <span class="tooltip"
+                        >ℹ️
+                        <span class="tooltiptext"
+                            >Dynamic Size adjusts the satellite size variance
+                            over time, creating a breathing effect. The
+                            Satellite Size Variance slider sets the boundary for
+                            this effect. Higher values mean more
+                            variation.</span
                         >
-                            Restore Default Settings
-                        </button>
-                    </div>
+                    </span>
                 </div>
+                <label for="positionVarianceSlider"
+                    >Position Variance:
+                    <span id="positionVarianceValue">15</span>%</label
+                >
+                <input
+                    type="range"
+                    id="positionVarianceSlider"
+                    min="0"
+                    max="100"
+                    value="15"
+                    step="1"
+                />
+                <label for="glowRadiusSlider">
+                    Glow Radius: <span id="glowRadiusValue">30</span>px
+                </label>
+                <input
+                    type="range"
+                    id="glowRadiusSlider"
+                    min="0"
+                    max="100"
+                    value="30"
+                    step="1"
+                />
             </div>
         </div>
-
-        <script>
-            // First, declare all our global variables and state
-            const circleMain = document.querySelector('.circle-main');
-            const breathingCircle = document.querySelector('.breathing-circle');
-            const sliders = {
-                inhaleTime: document.getElementById('inhaleTime'),
-                inhalePause: document.getElementById('inhalePause'),
-                exhaleTime: document.getElementById('exhaleTime'),
-                exhalePause: document.getElementById('exhalePause'),
-                satelliteCount: document.getElementById('satelliteCount'),
-                innerBoundary: document.getElementById('innerBoundary'),
-                outerBoundary: document.getElementById('outerBoundary'),
-                leftBoundary: document.getElementById('leftBoundary'),
-                rightBoundary: document.getElementById('rightBoundary'),
-                satelliteSize: document.getElementById('satelliteSize'),
-                glowEffect: document.getElementById('glowEffect'),
-                sizeVariation: document.getElementById('sizeVariation'),
-            };
-
-            // Create our state object with default values
-            const state = {
-                inhaleTime: 4,
-                inhalePause: 1,
-                exhaleTime: 4,
-                exhalePause: 1,
-                satelliteCount: 60,
-                innerBoundary: 2,
-                outerBoundary: 5,
-                leftBoundary: 5,
-                rightBoundary: 5,
-                satelliteSize: 40,
-                glowEffect: 50,
-                sizeVariation: 50,
-            };
-
-            // Then declare all our functions
-            function getSuffix(key) {
-                switch (key) {
-                    case 'innerBoundary':
-                    case 'outerBoundary':
-                    case 'leftBoundary':
-                    case 'rightBoundary':
-                        return '%';
-                    case 'satelliteSize':
-                    case 'glowEffect':
-                        return 'px';
-                    case 'satelliteCount':
-                        return '';
-                    case 'sizeVariation':
-                        return '%';
-                    default:
-                        return 's'; // For time-related sliders
-                }
-            }
-
-            function updateState(key, value) {
-                state[key] = value;
-
-                // Update the display value with the correct suffix
-                const displayElement = document.getElementById(`${key}Value`);
-                if (displayElement) {
-                    const suffix = getSuffix(key);
-                    displayElement.textContent = `${value}${suffix}`;
-                }
-
-                // Update animation if timing-related values change
-                if (
-                    [
-                        'inhaleTime',
-                        'inhalePause',
-                        'exhaleTime',
-                        'exhalePause',
-                    ].includes(key)
-                ) {
-                    updateAnimation();
-                }
-
-                applyStateChanges(key);
-            }
-
-            function applyStateChanges(changedKey) {
-                const satellites =
-                    document.querySelectorAll('.circle-satellite');
-
-                switch (changedKey) {
-                    case 'satelliteSize':
-                        satellites.forEach(satellite => {
-                            satellite.style.width = `${state.satelliteSize}px`;
-                            satellite.style.height = `${state.satelliteSize}px`;
-                        });
-                        break;
-
-                    case 'glowEffect':
-                        updateGlowColor();
-                        break;
-
-                    case 'satelliteCount':
-                        createSatelliteCircles(); // Recreate with new count
-                        break;
-
-                    case 'sizeVariation':
-                        satellites.forEach(satellite => {
-                            const sizeVariation = parseFloat(
-                                satellite.dataset.sizeVariation
-                            );
-                            const baseSize = state.satelliteSize;
-                            const randomizedSize = Math.max(
-                                1,
-                                baseSize * sizeVariation
-                            );
-                            satellite.style.width = `${randomizedSize}px`;
-                            satellite.style.height = `${randomizedSize}px`;
-                        });
-                        break;
-
-                    // Boundary changes don't need immediate action as they're used in updateSatellitePositions
-                }
-            }
-
-            function createSatelliteCircles() {
-                document
-                    .querySelectorAll('.circle-satellite')
-                    .forEach(s => s.remove());
-
-                const container = document.querySelector('.breathing-circle');
-                const containerSize = container.offsetWidth;
-                const mainCircleRadius = containerSize / 2;
-
-                for (let i = 0; i < state.satelliteCount; i++) {
-                    const satellite = document.createElement('div');
-                    satellite.className = 'circle circle-satellite';
-
-                    // Remove any individual color animations from satellites
-                    satellite.style.animation = 'none';
-
-                    // Calculate variation range based on slider (0-100%)
-                    const maxVariation = state.sizeVariation / 100;
-                    // Random value between (1 - maxVariation) and (1 + maxVariation)
-                    const sizeVariation =
-                        1 + (Math.random() * 2 - 1) * maxVariation;
-
-                    // Ensure minimum size is at least 1px
-                    const baseSize = state.satelliteSize;
-                    const randomizedSize = Math.max(
-                        1,
-                        baseSize * sizeVariation
-                    );
-
-                    satellite.style.width = `${randomizedSize}px`;
-                    satellite.style.height = `${randomizedSize}px`;
-                    satellite.dataset.sizeVariation = sizeVariation;
-
-                    const angle = (i / state.satelliteCount) * 2 * Math.PI;
-                    satellite.dataset.angle = angle;
-                    satellite.dataset.baseRadius = mainCircleRadius;
-                    satellite.dataset.radialPhase = Math.random() * Math.PI * 2;
-                    satellite.dataset.lateralPhase =
-                        Math.random() * Math.PI * 2;
-
-                    container.appendChild(satellite);
-                }
-
-                updateSatellitePositions();
-                startColorSync();
-            }
-
-            function updateSatellitePositions() {
-                const container = breathingCircle;
-                const containerSize = container.offsetWidth;
-
-                // Get the current scale of the main circle
-                const transform = window.getComputedStyle(circleMain).transform;
-                const matrix = new DOMMatrix(transform);
-                const currentScale = matrix.m11 || 1;
-
-                const mainCircleRadius = containerSize / 2;
-                const baseSatelliteSize = state.satelliteSize;
-
-                document
-                    .querySelectorAll('.circle-satellite')
-                    .forEach(satellite => {
-                        const angle = parseFloat(satellite.dataset.angle);
-                        const sizeVariation = parseFloat(
-                            satellite.dataset.sizeVariation
-                        );
-
-                        // Calculate the base size with variation
-                        const baseSize = baseSatelliteSize * sizeVariation;
-
-                        // Apply the main circle's scale to the satellite's size
-                        const scaledSatelliteSize =
-                            baseSize * (currentScale / 1.2); // Divide by initial scale (1.2)
-                        const satelliteRadius = scaledSatelliteSize / 2;
-
-                        // Update satellite size with scale
-                        satellite.style.width = `${scaledSatelliteSize}px`;
-                        satellite.style.height = `${scaledSatelliteSize}px`;
-
-                        // Calculate boundaries based on current scale
-                        const boundaries = calculateBoundaries(
-                            mainCircleRadius * currentScale,
-                            satelliteRadius
-                        );
-
-                        // Calculate radial position (distance from center)
-                        const time = Date.now() / 1000;
-                        const radialPhase = parseFloat(
-                            satellite.dataset.radialPhase
-                        );
-                        const lateralPhase = parseFloat(
-                            satellite.dataset.lateralPhase
-                        );
-
-                        const radialOscillation = Math.sin(time + radialPhase);
-                        const radius =
-                            boundaries.inner +
-                            ((boundaries.outer - boundaries.inner) *
-                                (radialOscillation + 1)) /
-                                2;
-
-                        // Only apply lateral movement if boundaries are greater than 0
-                        let lateralOffset = 0;
-                        if (boundaries.left > 0 || boundaries.right > 0) {
-                            const lateralOscillation = Math.sin(
-                                time * 0.7 + lateralPhase
-                            );
-                            // Convert degrees to radians for the lateral movement
-                            lateralOffset =
-                                ((lateralOscillation + 1) / 2) *
-                                    (boundaries.right + boundaries.left) -
-                                boundaries.left;
-                            lateralOffset = (lateralOffset * Math.PI) / 180; // Convert to radians
-                        }
-
-                        // Calculate final position
-                        const adjustedAngle = angle + lateralOffset;
-                        const x = Math.cos(adjustedAngle) * radius;
-                        const y = Math.sin(adjustedAngle) * radius;
-
-                        satellite.style.transform = `translate3d(calc(50% + ${x}px - ${satelliteRadius}px), calc(50% + ${y}px - ${satelliteRadius}px), 0)`;
-                    });
-
-                requestAnimationFrame(updateSatellitePositions);
-            }
-
-            function calculateBoundaries(mainCircleRadius, satelliteRadius) {
-                // Get viewport dimensions
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-
-                // Calculate the center point of the breathing circle
-                const breathingCircle =
-                    document.querySelector('.breathing-circle');
-                const rect = breathingCircle.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-
-                // Calculate maximum allowed radius to stay within viewport (with margin)
-                const margin = 20; // pixels from viewport edge
-                const maxRadiusX = Math.min(
-                    centerX - margin,
-                    viewportWidth - centerX - margin
-                );
-                const maxRadiusY = Math.min(
-                    centerY - margin,
-                    viewportHeight - centerY - margin
-                );
-                const maxAllowedRadius = Math.min(maxRadiusX, maxRadiusY);
-
-                // Calculate the base radius range
-                const minPossibleRadius = mainCircleRadius - satelliteRadius;
-                const maxPossibleRadius = Math.min(
-                    maxAllowedRadius - satelliteRadius,
-                    mainCircleRadius + 10 * satelliteRadius
-                );
-
-                // Adjust the radius range based on viewport constraints
-                const radiusRange = maxPossibleRadius - minPossibleRadius;
-
-                // Calculate the maximum lateral movement range (in degrees)
-                const maxLateralRange = 30; // Maximum degrees of lateral movement
-
-                return {
-                    inner:
-                        minPossibleRadius +
-                        (radiusRange * state.innerBoundary) / 100,
-                    outer:
-                        minPossibleRadius +
-                        (radiusRange * state.outerBoundary) / 100,
-                    // Convert percentage to actual degrees, allowing for zero movement
-                    left: (maxLateralRange * state.leftBoundary) / 100,
-                    right: (maxLateralRange * state.rightBoundary) / 100,
-                };
-            }
-
-            // Add window resize handler to recalculate boundaries
-            window.addEventListener('resize', () => {
-                requestAnimationFrame(updateSatellitePositions);
-            });
-
-            function startColorSync() {
-                function syncColors() {
-                    // Get the main circle's current color
-                    const mainCircle = document.querySelector('.circle-main');
-                    const mainColor =
-                        window.getComputedStyle(mainCircle).backgroundColor;
-
-                    // Apply the exact same color to all satellites
-                    document
-                        .querySelectorAll('.circle-satellite')
-                        .forEach(satellite => {
-                            satellite.style.backgroundColor = mainColor;
-                        });
-
-                    requestAnimationFrame(syncColors);
-                }
-
-                syncColors();
-            }
-
-            function updateAnimation() {
-                const inhale = state.inhaleTime;
-                const inhalePause = state.inhalePause;
-                const exhale = state.exhaleTime;
-                const exhalePause = state.exhalePause;
-
-                const totalDuration =
-                    inhale + inhalePause + exhale + exhalePause;
-
-                const inhalePercent = (inhale / totalDuration) * 100;
-                const inhalePausePercent =
-                    ((inhale + inhalePause) / totalDuration) * 100;
-                const exhalePercent =
-                    ((inhale + inhalePause + exhale) / totalDuration) * 100;
-
-                // Create the keyframes
-                const keyframes = `
-                    @keyframes breatheScale {
-                        0% { transform: scale(1.2); }
-                        ${inhalePercent}% { transform: scale(2.0); }
-                        ${inhalePausePercent}% { transform: scale(2.0); }
-                        ${exhalePercent}% { transform: scale(1.2); }
-                        100% { transform: scale(1.2); }
-                    }
-                `;
-
-                // Update or create the animation style
-                let styleSheet = document.getElementById('breathe-animation');
-                if (styleSheet) {
-                    styleSheet.remove();
-                }
-                styleSheet = document.createElement('style');
-                styleSheet.id = 'breathe-animation';
-                styleSheet.textContent = keyframes;
-                document.head.appendChild(styleSheet);
-
-                // Apply only scale animation to main circle (color handled by CSS)
-                circleMain.style.animation = `breatheScale ${totalDuration}s infinite ease-in-out, colorChange ${totalDuration}s infinite ease-in-out`;
-            }
-
-            function initializeSliders() {
-                Object.entries(sliders).forEach(([key, slider]) => {
-                    // Set initial values from state
-                    slider.value = state[key];
-
-                    // Update display immediately
-                    updateState(key, parseFloat(slider.value));
-
-                    // Add input event listener for real-time updates
-                    slider.addEventListener('input', e => {
-                        updateState(key, parseFloat(e.target.value));
-                    });
-                });
-            }
-
-            // Ensure this is called on page load
-            document.addEventListener('DOMContentLoaded', () => {
-                initializeSliders();
-                updateAnimation();
-                createSatelliteCircles();
-
-                // Detect screen size and select preset
-                const isMobile = window.innerWidth <= 768; // Typical breakpoint for mobile
-                const selectedPreset = isMobile ? 'preset2' : 'preset1'; // Change to preset2 for mobile
-
-                // Set the radio button for the selected preset
-                const presetRadio = document.querySelector(
-                    `input[name="advancedPreset"][value="${selectedPreset}"]`
-                );
-                if (presetRadio) {
-                    presetRadio.checked = true;
-                    updateAdvancedSettings(selectedPreset);
-                }
-            });
-
-            // Remove any existing click handlers for the settings button
-            // And replace with this new code:
-
-            // Get references to the elements
-            const settingsButton = document.querySelector('.settings-button');
-            const controls = document.querySelector('.controls');
-
-            // Add click handler for the settings button
-            settingsButton.addEventListener('click', event => {
-                const isVisible = controls.style.display === 'block';
-                controls.style.display = isVisible ? 'none' : 'block';
-                event.stopPropagation();
-            });
-
-            // Add click handler for the document
-            document.addEventListener('click', event => {
-                // If clicking inside the controls panel, don't close it
-                if (event.target.closest('.controls')) {
-                    return;
-                }
-
-                // Clicking anywhere else closes the controls
-                controls.style.display = 'none';
-            });
-
-            // Optional: Recreate satellites when window resizes to maintain positioning
-            window.addEventListener('resize', () => {
-                createSatelliteCircles();
-            });
-
-            function updateGlowColor() {
-                const glowWrapper = document.querySelector('.glow-wrapper');
-                const glowIntensity = state.glowEffect;
-                const currentColor = getComputedStyle(document.documentElement)
-                    .getPropertyValue('--inhale-color')
-                    .trim();
-                glowWrapper.style.filter = `drop-shadow(0 0 ${glowIntensity}px ${currentColor}80)`; // 80 is for 50% opacity
-            }
-
-            // Add event listeners for new sliders
-            sliders.satelliteCount.addEventListener(
-                'input',
-                createSatelliteCircles
-            );
-            sliders.satelliteSize.addEventListener(
-                'input',
-                createSatelliteCircles
-            );
-
-            // Make sure initial state is applied
-            updateGlowColor();
-
-            // Add keyboard shortcut handler for settings toggle
-            document.addEventListener('keydown', event => {
-                // Check for Ctrl + / (forward slash)
-                if (event.ctrlKey && event.key === '/') {
-                    event.preventDefault(); // Prevent default browser behavior
-                    const isVisible = controls.style.display === 'block';
-                    controls.style.display = isVisible ? 'none' : 'block';
-                }
-
-                // Check for Escape key
-                if (event.key === 'Escape') {
-                    controls.style.display = 'none';
-                }
-            });
-
-            // Add this near your other initialization code
-            let startTime = Date.now();
-
-            function updateTimer() {
-                const elapsedTime = Date.now() - startTime;
-                const hours = Math.floor(elapsedTime / (1000 * 60 * 60));
-                const minutes = Math.floor(
-                    (elapsedTime % (1000 * 60 * 60)) / (1000 * 60)
-                );
-                const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
-
-                const timeString = [hours, minutes, seconds]
-                    .map(unit => unit.toString().padStart(2, '0'))
-                    .join(':');
-
-                document.getElementById('timer').textContent = timeString;
-            }
-
-            // Update timer every second
-            setInterval(updateTimer, 1000);
-
-            // Add theme definitions
-            const themes = {
-                theme1: {
-                    inhale: '#667db6',
-                    exhale: '#0082c8',
-                },
-                theme2: {
-                    inhale: '#cac531',
-                    exhale: '#f3f9a7',
-                },
-                theme3: {
-                    inhale: '#f5af19',
-                    exhale: '#f12711',
-                },
-            };
-
-            // Add color handling functions
-            function updateThemeColors(themeName, swapColors = false) {
-                const theme = themes[themeName];
-                if (!theme) return;
-
-                const root = document.documentElement;
-                if (swapColors) {
-                    root.style.setProperty('--inhale-color', theme.exhale);
-                    root.style.setProperty('--exhale-color', theme.inhale);
-                } else {
-                    root.style.setProperty('--inhale-color', theme.inhale);
-                    root.style.setProperty('--exhale-color', theme.exhale);
-                }
-
-                updateGlowColor(); // Update glow effect with new colors
-            }
-
-            // Add event listeners for theme switching and color swapping
-            document.querySelectorAll('input[name="theme"]').forEach(radio => {
-                radio.addEventListener('change', e => {
-                    const swapColors =
-                        document.getElementById('colorSwap').checked;
-                    updateThemeColors(e.target.value, swapColors);
-                });
-            });
-
-            document
-                .getElementById('colorSwap')
-                .addEventListener('change', e => {
-                    const selectedTheme = document.querySelector(
-                        'input[name="theme"]:checked'
-                    ).value;
-                    updateThemeColors(selectedTheme, e.target.checked);
-                });
-
-            // Initialize theme on page load
-            document.addEventListener('DOMContentLoaded', () => {
-                const initialTheme = document.querySelector(
-                    'input[name="theme"]:checked'
-                ).value;
-                updateThemeColors(initialTheme, false);
-                // ... rest of your initialization code ...
-            });
-
-            // Add this to your initialization code
-            function initializeCollapsibleSections() {
-                document.querySelectorAll('.section-header').forEach(header => {
-                    header.addEventListener('click', () => {
-                        const section = header.closest('.collapsible-section');
-                        section.classList.toggle('active');
-                    });
-                });
-            }
-
-            document.addEventListener('DOMContentLoaded', () => {
-                initializeCollapsibleSections();
-                // ... rest of your initialization code ...
-            });
-
-            // Make sure the size variation slider triggers satellite recreation
-            document.addEventListener('DOMContentLoaded', () => {
-                // ... existing initialization ...
-
-                // Add specific handler for size variation
-                sliders.sizeVariation.addEventListener('input', () => {
-                    createSatelliteCircles();
-                });
-            });
-
-            // Add this to your script section, near the other state-related code
-            const DEFAULT_STATE = {
-                satelliteCount: 60,
-                innerBoundary: 2,
-                outerBoundary: 5,
-                leftBoundary: 5,
-                rightBoundary: 5,
-                satelliteSize: 40,
-                glowEffect: 50,
-                sizeVariation: 50,
-            };
-
-            // Add this function to handle resetting to defaults
-            function restoreDefaultSettings() {
-                // Find the preset1 radio button and click it
-                const preset1Radio = document.querySelector(
-                    'input[name="advancedPreset"][value="preset1"]'
-                );
-                if (preset1Radio) {
-                    preset1Radio.checked = true;
-                    // Trigger the change event to apply the preset
-                    preset1Radio.dispatchEvent(new Event('change'));
-                }
-            }
-
-            // Add this to your initialization code
-            document.addEventListener('DOMContentLoaded', () => {
-                // ... existing initialization code ...
-
-                // Add click handler for restore defaults button
-                const restoreDefaultsBtn =
-                    document.getElementById('restoreDefaults');
-                if (restoreDefaultsBtn) {
-                    restoreDefaultsBtn.addEventListener(
-                        'click',
-                        restoreDefaultSettings
-                    );
-                }
-            });
-
-            // Add this near your other constants/state definitions
-            const advancedPresets = {
-                preset1: {
-                    satelliteCount: 60,
-                    innerBoundary: 1,
-                    outerBoundary: 2,
-                    leftBoundary: 5,
-                    rightBoundary: 5,
-                    satelliteSize: 40,
-                    glowEffect: 50,
-                    sizeVariation: 30,
-                },
-                preset2: {
-                    satelliteCount: 15,
-                    innerBoundary: 50,
-                    outerBoundary: 100,
-                    leftBoundary: 100,
-                    rightBoundary: 100,
-                    satelliteSize: 6,
-                    glowEffect: 50,
-                    sizeVariation: 30,
-                },
-                preset3: {
-                    satelliteCount: 10,
-                    innerBoundary: 0,
-                    outerBoundary: 0,
-                    leftBoundary: 0,
-                    rightBoundary: 0,
-                    satelliteSize: 1,
-                    glowEffect: 50,
-                    sizeVariation: 0,
-                },
-                preset4: {
-                    satelliteCount: 60,
-                    innerBoundary: 10,
-                    outerBoundary: 15,
-                    leftBoundary: 5,
-                    rightBoundary: 5,
-                    satelliteSize: 40,
-                    glowEffect: 50,
-                    sizeVariation: 50,
-                },
-            };
-
-            // Add this function to handle preset switching
-            function updateAdvancedSettings(presetName) {
-                const preset = advancedPresets[presetName];
-                if (!preset) return;
-
-                // Update each setting
-                Object.entries(preset).forEach(([key, value]) => {
-                    // Update the state
-                    state[key] = value;
-
-                    // Update the slider value
-                    const slider = sliders[key];
-                    if (slider) {
-                        slider.value = value;
-                    }
-
-                    // Update the display value
-                    const displayElement = document.getElementById(
-                        `${key}Value`
-                    );
-                    if (displayElement) {
-                        const suffix = getSuffix(key);
-                        displayElement.textContent = `${value}${suffix}`;
-                    }
-                });
-
-                // Apply the changes
-                createSatelliteCircles();
-                updateGlowColor();
-            }
-
-            // Add this to your initialization code
-            document.addEventListener('DOMContentLoaded', () => {
-                // ... existing initialization code ...
-
-                // Add event listeners for preset switching
-                document
-                    .querySelectorAll('input[name="advancedPreset"]')
-                    .forEach(radio => {
-                        radio.addEventListener('change', e => {
-                            updateAdvancedSettings(e.target.value);
-                        });
-                    });
-            });
-        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.2/svg.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.filter.js@3.0.8/dist/svg.filter.js"></script>
+        <script src="script.js"></script>
     </body>
 </html>

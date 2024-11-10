@@ -30,16 +30,29 @@
                         </svg>
                     </div>
                     <div class="settings-group-content" id="size-content">
-                        <label for="planetSizeSlider"
-                            >Planet Size:
-                            <span id="planetSliderValue">40</span>%</label
-                        >
+                        <label for="planetSizeSlider">
+                            Minimum Planet Size:
+                            <span id="planetSliderValue">40</span>%
+                        </label>
                         <input
                             type="range"
                             id="planetSizeSlider"
                             min="0"
                             max="100"
                             value="40"
+                            step="1"
+                        />
+
+                        <label for="maxPlanetSizeSlider">
+                            Maximum Planet Size:
+                            <span id="maxPlanetSliderValue">100</span>%
+                        </label>
+                        <input
+                            type="range"
+                            id="maxPlanetSizeSlider"
+                            min="0"
+                            max="100"
+                            value="100"
                             step="1"
                         />
 

@@ -119,7 +119,7 @@ input[type='range'] {
     right: 20px;
     bottom: 70px;
     width: 300px;
-    background-color: rgba(15, 32, 39, 0.9);
+    background-color: rgba(15, 32, 39, 0.7);
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
@@ -175,7 +175,7 @@ input[type='range'] {
 .tooltip .tooltiptext {
     visibility: hidden;
     width: 220px;
-    background-color: #333;
+    background-color: rgba(51, 51, 51, 0.85);
     color: #fff;
     text-align: center;
     border-radius: 6px;
@@ -261,14 +261,14 @@ input[type='range'] {
 /* Add these new styles */
 .settings-group {
     margin-bottom: 15px;
-    border: 1px solid rgba(102, 125, 182, 0.2);
+    border: 1px solid rgba(102, 125, 182, 0.15);
     border-radius: 4px;
     overflow: hidden;
 }
 
 .settings-group-header {
     padding: 12px 15px;
-    background: rgba(102, 125, 182, 0.1);
+    background: rgba(102, 125, 182, 0.08);
     cursor: pointer;
     display: flex;
     justify-content: space-between;
@@ -278,7 +278,7 @@ input[type='range'] {
 }
 
 .settings-group-header:hover {
-    background: rgba(102, 125, 182, 0.2);
+    background: rgba(102, 125, 182, 0.15);
 }
 
 .settings-group-content {

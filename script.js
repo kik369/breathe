@@ -1,6 +1,13 @@
 class SVGAnimation {
     constructor() {
-        this.size = Math.min(window.innerWidth, window.innerHeight) * 0.8;
+        const minScreenDim = Math.min(window.innerWidth, window.innerHeight);
+
+        if (window.innerWidth > 768) {
+            this.size = Math.min(minScreenDim * 0.8, window.innerWidth / 3);
+        } else {
+            this.size = minScreenDim * 0.8;
+        }
+
         const padding = this.size * 0.5;
         this.draw = SVG()
             .addTo('#drawing')
@@ -37,7 +44,7 @@ class SVGAnimation {
         this.satelliteBaseAngles = [];
         this.updateSatellites(
             250,
-            this.updatePlanetSize(0.4),
+            this.updateMinPlanetSize(0.4),
             this.updateSatelliteSize(0.2)
         );
     }
@@ -58,6 +65,7 @@ class SVGAnimation {
     initEventListeners() {
         const sliders = [
             [planetSizeSlider, 'planetSliderValue'],
+            [maxPlanetSizeSlider, 'maxPlanetSliderValue'],
             [satelliteSizeSlider, 'satelliteSizeValue'],
             [satelliteCountSlider, 'satelliteCountValue'],
             [inhaleSlider, 'inhaleValue'],
@@ -80,9 +88,33 @@ class SVGAnimation {
             this.updatePlanetGlow(this.planet.fill(), radius);
         });
 
-        planetSizeSlider.addEventListener('input', e =>
-            this.onPlanetSizeChange(e)
-        );
+        planetSizeSlider.addEventListener('input', e => {
+            const minValue = parseInt(e.target.value);
+            const maxValue = parseInt(maxPlanetSizeSlider.value);
+
+            if (minValue > maxValue) {
+                maxPlanetSizeSlider.value = minValue;
+                document.getElementById('maxPlanetSliderValue').textContent =
+                    minValue;
+            }
+            this.onMinPlanetSizeChange(e);
+        });
+
+        maxPlanetSizeSlider.addEventListener('input', e => {
+            const maxValue = parseInt(e.target.value);
+            const minValue = parseInt(planetSizeSlider.value);
+
+            if (maxValue < minValue) {
+                e.target.value = minValue;
+                document.getElementById('maxPlanetSliderValue').textContent =
+                    minValue;
+            } else {
+                document.getElementById('maxPlanetSliderValue').textContent =
+                    maxValue;
+            }
+            this.onMaxPlanetSizeChange(e);
+        });
+
         satelliteSizeSlider.addEventListener('input', e =>
             this.onSatelliteSizeChange(e)
         );
@@ -130,9 +162,9 @@ class SVGAnimation {
         });
     }
 
-    onPlanetSizeChange(e) {
+    onMinPlanetSizeChange(e) {
         const scale = e.target.value / 100;
-        const planetRadius = this.updatePlanetSize(scale);
+        const planetRadius = this.updateMinPlanetSize(scale);
         const satelliteSize = this.updateSatelliteSize(
             satelliteSizeSlider.value / 100
         );
@@ -145,10 +177,23 @@ class SVGAnimation {
         );
     }
 
+    onMaxPlanetSizeChange(e) {
+        const scale = planetSizeSlider.value / 100;
+        const planetRadius = this.updateMinPlanetSize(scale);
+        const satelliteSize = this.updateSatelliteSize(
+            satelliteSizeSlider.value / 100
+        );
+        this.updateSatellites(
+            parseInt(satelliteCountSlider.value),
+            planetRadius,
+            satelliteSize
+        );
+    }
+
     onSatelliteSizeChange(e) {
         const scale = e.target.value / 100;
         const satelliteSize = this.updateSatelliteSize(scale);
-        const planetRadius = this.updatePlanetSize(
+        const planetRadius = this.updateMinPlanetSize(
             planetSizeSlider.value / 100
         );
         document.getElementById('satelliteSizeValue').textContent =
@@ -161,7 +206,7 @@ class SVGAnimation {
     }
 
     onSatelliteCountChange(e) {
-        const planetRadius = this.updatePlanetSize(
+        const planetRadius = this.updateMinPlanetSize(
             planetSizeSlider.value / 100
         );
         const satelliteSize = this.updateSatelliteSize(
@@ -178,7 +223,14 @@ class SVGAnimation {
 
     onWindowResize() {
         if (this.animationTimer) clearInterval(this.animationTimer);
-        this.size = Math.min(window.innerWidth, window.innerHeight) * 0.8;
+
+        const minScreenDim = Math.min(window.innerWidth, window.innerHeight);
+        if (window.innerWidth > 768) {
+            this.size = Math.min(minScreenDim * 0.8, window.innerWidth / 3);
+        } else {
+            this.size = minScreenDim * 0.8;
+        }
+
         const padding = this.size * 0.5;
         this.draw
             .size(this.size + padding * 2, this.size + padding * 2)
@@ -189,7 +241,7 @@ class SVGAnimation {
                 this.size + padding * 2
             );
 
-        const planetRadius = this.updatePlanetSize(
+        const planetRadius = this.updateMinPlanetSize(
             planetSizeSlider.value / 100
         );
         const satelliteSize = this.updateSatelliteSize(
@@ -221,11 +273,13 @@ class SVGAnimation {
         this.satellites.each(satellite => satellite.fill(color));
     }
 
-    updatePlanetSize(scale) {
+    updateMinPlanetSize(scale) {
         const baseSatelliteSize =
             this.size * (satelliteSizeSlider.value / 100) * 0.25;
-        const maxScale = this.getMaxPlanetScale(baseSatelliteSize);
-        const constrainedScale = Math.min(scale, maxScale);
+        const systemMaxScale = this.getMaxPlanetScale(baseSatelliteSize);
+        const userMaxScale = maxPlanetSizeSlider.value / 100;
+        const effectiveMaxScale = Math.min(systemMaxScale, userMaxScale);
+        const constrainedScale = Math.min(scale, effectiveMaxScale);
 
         if (constrainedScale !== scale) {
             planetSizeSlider.value = constrainedScale * 100;
@@ -296,14 +350,19 @@ class SVGAnimation {
     startPulseAnimation() {
         const animate = () => {
             const currentScale = planetSizeSlider.value / 100;
+            const maxScale = maxPlanetSizeSlider.value / 100;
             const baseSatelliteSize =
                 this.size * (satelliteSizeSlider.value / 100) * 0.25;
             const sizeVarianceFactor = satelliteVarianceSlider.value / 100;
-            const maxScale = this.getMaxPlanetScale(baseSatelliteSize);
+            const maxAllowedScale = this.getMaxPlanetScale(baseSatelliteSize);
+            // Use the minimum between user-set max and system-calculated max
+            const effectiveMaxScale = Math.min(maxScale, maxAllowedScale);
+
             const inhaleDuration = parseFloat(inhaleSlider.value) * 1000;
             const holdDuration = parseFloat(holdSlider.value) * 1000;
             const exhaleDuration = parseFloat(exhaleSlider.value) * 1000;
             const restDuration = parseFloat(restSlider.value) * 1000;
+
             const positionVarianceFactor = positionVarianceSlider.value / 100;
             const isDynamicSize = document.getElementById(
                 'dynamicSizeVariance'
@@ -356,7 +415,7 @@ class SVGAnimation {
                     ease: '<>',
                     duration: inhaleDuration,
                 })
-                .size(this.size * maxScale)
+                .size(this.size * effectiveMaxScale)
                 .during(pos => {
                     const currentPlanetSize = this.planet.width();
                     const color = this.interpolateColor(
@@ -406,7 +465,7 @@ class SVGAnimation {
                             ease: '<>',
                             duration: holdDuration,
                         })
-                        .size(this.size * maxScale)
+                        .size(this.size * effectiveMaxScale)
                         .during(pos => {
                             const currentPlanetSize = this.planet.width();
                             const color = this.interpolateColor(
@@ -676,10 +735,13 @@ class SVGAnimation {
     }
 
     getMaxPlanetScale(baseSatelliteSize) {
-        const maxSatelliteSize =
-            baseSatelliteSize * (1 + (4 * satelliteVarianceSlider.value) / 100);
-        const maxRadius = this.size / 2;
-        return (2 * maxRadius - maxSatelliteSize) / this.size;
+        const systemMaxScale =
+            (2 * this.size -
+                baseSatelliteSize *
+                    (1 + (4 * satelliteVarianceSlider.value) / 100)) /
+            this.size;
+        const userMaxScale = maxPlanetSizeSlider.value / 100;
+        return Math.min(systemMaxScale, userMaxScale);
     }
 
     getNextSize(baseSize, varianceFactor) {

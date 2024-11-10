@@ -20,138 +20,191 @@
                 <div class="session-timer" id="sessionTimer">
                     Session: 00:00:00
                 </div>
-                <label for="planetSizeSlider"
-                    >Planet Size: <span id="planetSliderValue">40</span>%</label
-                >
-                <input
-                    type="range"
-                    id="planetSizeSlider"
-                    min="0"
-                    max="100"
-                    value="40"
-                    step="1"
-                />
-                <label for="satelliteSizeSlider"
-                    >Satellite Size:
-                    <span id="satelliteSizeValue">20</span>%</label
-                >
-                <input
-                    type="range"
-                    id="satelliteSizeSlider"
-                    min="0"
-                    max="100"
-                    value="20"
-                    step="1"
-                />
-                <label for="satelliteCountSlider"
-                    >Satellites:
-                    <span id="satelliteCountValue">300</span></label
-                >
-                <input
-                    type="range"
-                    id="satelliteCountSlider"
-                    min="0"
-                    max="500"
-                    value="300"
-                    step="1"
-                />
-                <label for="inhaleSlider"
-                    >Inhale Duration: <span id="inhaleValue">5</span>s</label
-                >
-                <input
-                    type="range"
-                    id="inhaleSlider"
-                    min="0"
-                    max="10"
-                    value="5"
-                    step="1"
-                />
-                <label for="holdSlider"
-                    >Hold Duration: <span id="holdValue">1</span>s</label
-                >
-                <input
-                    type="range"
-                    id="holdSlider"
-                    min="0"
-                    max="10"
-                    value="1"
-                    step="1"
-                />
-                <label for="exhaleSlider"
-                    >Exhale Duration: <span id="exhaleValue">5</span>s</label
-                >
-                <input
-                    type="range"
-                    id="exhaleSlider"
-                    min="0"
-                    max="10"
-                    value="5"
-                    step="1"
-                />
-                <label for="restSlider"
-                    >Rest Duration: <span id="restValue">1</span>s</label
-                >
-                <input
-                    type="range"
-                    id="restSlider"
-                    min="0"
-                    max="10"
-                    value="1"
-                    step="1"
-                />
-                <label for="satelliteVarianceSlider"
-                    >Satellite Size Variance:
-                    <span id="satelliteVarianceValue">35</span>%</label
-                >
-                <input
-                    type="range"
-                    id="satelliteVarianceSlider"
-                    min="0"
-                    max="100"
-                    value="35"
-                    step="1"
-                />
-                <div style="margin: 10px 0">
-                    <input type="checkbox" id="dynamicSizeVariance" checked />
-                    <label for="dynamicSizeVariance" style="display: inline"
-                        >Dynamic Size</label
-                    >
-                    <span class="tooltip"
-                        >ℹ️
-                        <span class="tooltiptext"
-                            >Dynamic Size adjusts the satellite size variance
-                            over time, creating a breathing effect. The
-                            Satellite Size Variance slider sets the boundary for
-                            this effect. Higher values mean more
-                            variation.</span
-                        >
-                    </span>
-                </div>
-                <label for="positionVarianceSlider"
-                    >Position Variance:
-                    <span id="positionVarianceValue">15</span>%</label
-                >
-                <input
-                    type="range"
-                    id="positionVarianceSlider"
-                    min="0"
-                    max="100"
-                    value="15"
-                    step="1"
-                />
-                <label for="glowRadiusSlider">
-                    Glow Radius: <span id="glowRadiusValue">30</span>px
-                </label>
-                <input
-                    type="range"
-                    id="glowRadiusSlider"
-                    min="0"
-                    max="100"
-                    value="30"
-                    step="1"
-                />
 
-                <!-- Add at the bottom of settings-panel div -->
+                <!-- Size Controls -->
+                <div class="settings-group">
+                    <div class="settings-group-header" data-group="size">
+                        <span>Size Settings</span>
+                        <svg class="arrow-icon" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5z" />
+                        </svg>
+                    </div>
+                    <div class="settings-group-content" id="size-content">
+                        <label for="planetSizeSlider"
+                            >Planet Size:
+                            <span id="planetSliderValue">40</span>%</label
+                        >
+                        <input
+                            type="range"
+                            id="planetSizeSlider"
+                            min="0"
+                            max="100"
+                            value="40"
+                            step="1"
+                        />
+
+                        <label for="satelliteSizeSlider"
+                            >Satellite Size:
+                            <span id="satelliteSizeValue">20</span>%</label
+                        >
+                        <input
+                            type="range"
+                            id="satelliteSizeSlider"
+                            min="0"
+                            max="100"
+                            value="20"
+                            step="1"
+                        />
+
+                        <label for="glowRadiusSlider"
+                            >Glow Radius:
+                            <span id="glowRadiusValue">30</span>px</label
+                        >
+                        <input
+                            type="range"
+                            id="glowRadiusSlider"
+                            min="0"
+                            max="100"
+                            value="30"
+                            step="1"
+                        />
+                    </div>
+                </div>
+
+                <!-- Timing Controls -->
+                <div class="settings-group">
+                    <div class="settings-group-header" data-group="timing">
+                        <span>Timing Settings</span>
+                        <svg class="arrow-icon" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5z" />
+                        </svg>
+                    </div>
+                    <div class="settings-group-content" id="timing-content">
+                        <label for="inhaleSlider"
+                            >Inhale Duration:
+                            <span id="inhaleValue">5</span>s</label
+                        >
+                        <input
+                            type="range"
+                            id="inhaleSlider"
+                            min="0"
+                            max="10"
+                            value="5"
+                            step="1"
+                        />
+
+                        <label for="holdSlider"
+                            >Hold Duration:
+                            <span id="holdValue">1</span>s</label
+                        >
+                        <input
+                            type="range"
+                            id="holdSlider"
+                            min="0"
+                            max="10"
+                            value="1"
+                            step="1"
+                        />
+
+                        <label for="exhaleSlider"
+                            >Exhale Duration:
+                            <span id="exhaleValue">5</span>s</label
+                        >
+                        <input
+                            type="range"
+                            id="exhaleSlider"
+                            min="0"
+                            max="10"
+                            value="5"
+                            step="1"
+                        />
+
+                        <label for="restSlider"
+                            >Rest Duration:
+                            <span id="restValue">1</span>s</label
+                        >
+                        <input
+                            type="range"
+                            id="restSlider"
+                            min="0"
+                            max="10"
+                            value="1"
+                            step="1"
+                        />
+                    </div>
+                </div>
+
+                <!-- Satellite Controls -->
+                <div class="settings-group">
+                    <div class="settings-group-header" data-group="satellites">
+                        <span>Satellite Settings</span>
+                        <svg class="arrow-icon" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5z" />
+                        </svg>
+                    </div>
+                    <div class="settings-group-content" id="satellites-content">
+                        <label for="satelliteCountSlider"
+                            >Satellites:
+                            <span id="satelliteCountValue">300</span></label
+                        >
+                        <input
+                            type="range"
+                            id="satelliteCountSlider"
+                            min="0"
+                            max="500"
+                            value="300"
+                            step="1"
+                        />
+
+                        <label for="satelliteVarianceSlider"
+                            >Size Variance:
+                            <span id="satelliteVarianceValue">35</span>%</label
+                        >
+                        <input
+                            type="range"
+                            id="satelliteVarianceSlider"
+                            min="0"
+                            max="100"
+                            value="35"
+                            step="1"
+                        />
+
+                        <label for="positionVarianceSlider"
+                            >Position Variance:
+                            <span id="positionVarianceValue">15</span>%</label
+                        >
+                        <input
+                            type="range"
+                            id="positionVarianceSlider"
+                            min="0"
+                            max="100"
+                            value="15"
+                            step="1"
+                        />
+
+                        <div class="checkbox-container">
+                            <input
+                                type="checkbox"
+                                id="dynamicSizeVariance"
+                                checked
+                            />
+                            <label for="dynamicSizeVariance"
+                                >Dynamic Size</label
+                            >
+                            <span class="tooltip"
+                                >ℹ️
+                                <span class="tooltiptext"
+                                    >Dynamic Size adjusts the satellite size
+                                    variance over time, creating a breathing
+                                    effect. The Satellite Size Variance slider
+                                    sets the boundary for this effect. Higher
+                                    values mean more variation.</span
+                                >
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bmc-container">
                     <img
                         src="bmc_qr.png"

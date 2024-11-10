@@ -102,6 +102,32 @@ class SVGAnimation {
                 this.toggleSettingsPanel();
             }
         });
+
+        // Add group header click handlers
+        document.querySelectorAll('.settings-group-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const currentContent = document.getElementById(
+                    `${header.dataset.group}-content`
+                );
+                const wasActive = header.classList.contains('active');
+
+                // Close all groups
+                document
+                    .querySelectorAll('.settings-group-header')
+                    .forEach(h => {
+                        h.classList.remove('active');
+                        document
+                            .getElementById(`${h.dataset.group}-content`)
+                            .classList.remove('active');
+                    });
+
+                // Open clicked group if it wasn't active
+                if (!wasActive) {
+                    header.classList.add('active');
+                    currentContent.classList.add('active');
+                }
+            });
+        });
     }
 
     onPlanetSizeChange(e) {

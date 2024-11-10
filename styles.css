@@ -66,7 +66,7 @@ input[type='range'] {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #203a43;
+    background: rgba(102, 125, 182, 0.2);
     border: none;
     border-radius: 50%;
     width: 40px;
@@ -79,17 +79,30 @@ input[type='range'] {
     align-items: center;
     justify-content: center;
     pointer-events: auto;
+    overflow: hidden;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .settings-icon:hover {
-    background: #2c5364;
+    background: rgba(102, 125, 182, 0.4);
     transform: scale(1.1);
+}
+
+.settings-icon:active {
+    transform: scale(0.95);
+    background: rgba(102, 125, 182, 0.5);
+}
+
+.settings-icon:focus {
+    outline: none;
 }
 
 .settings-icon svg {
     width: 24px;
     height: 24px;
-    fill: rgba(102, 125, 182, 0.5);
+    fill: rgba(102, 125, 182, 0.8);
+    pointer-events: none;
 }
 
 .settings-panel {
@@ -208,4 +221,82 @@ input[type='range'] {
 
 .bmc-link:hover {
     color: #fff;
+}
+
+@media screen and (max-width: 768px) {
+    .settings-panel {
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        transform: translateY(100%);
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .settings-panel.visible {
+        transform: translateY(0);
+    }
+
+    .settings-icon {
+        bottom: 20px;
+        right: 20px;
+        z-index: 1001;
+    }
+}
+
+/* Add these new styles */
+.settings-group {
+    margin-bottom: 15px;
+    border: 1px solid rgba(102, 125, 182, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.settings-group-header {
+    padding: 12px 15px;
+    background: rgba(102, 125, 182, 0.1);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.9);
+    transition: background-color 0.3s ease;
+}
+
+.settings-group-header:hover {
+    background: rgba(102, 125, 182, 0.2);
+}
+
+.settings-group-content {
+    padding: 15px;
+    display: none;
+}
+
+.settings-group-content.active {
+    display: block;
+}
+
+.arrow-icon {
+    width: 24px;
+    height: 24px;
+    fill: rgba(255, 255, 255, 0.9);
+    transition: transform 0.3s ease;
+}
+
+.settings-group-header.active .arrow-icon {
+    transform: rotate(180deg);
+}
+
+.checkbox-container {
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox-container label {
+    margin: 0;
 }

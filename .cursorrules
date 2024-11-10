@@ -7,6 +7,7 @@
 # Code Standards
 
 -   Confirm requirements, then write code.
+-   If any requirements are unclear or incomplete, ask relevant and thoughtful questions to clarify them before proceeding.
 -   Ensure code is correct, up-to-date, fully functional, secure, performant, and efficient.
 -   Prioritise readability over performance.
 -   Implement all requested functionality in full. Avoid todos, placeholders, or incomplete pieces.
@@ -41,5 +42,6 @@
 
 # Interaction Guidelines
 
+-   If the user's instructions are unclear or incomplete, ask relevant and thoughtful questions to clarify requirements before proceeding.
 -   Respond with brevity and precision, focusing on code solutions.
 -   If asked for code adjustments, minimise the amount of repeated code and only present necessary modifications.

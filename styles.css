@@ -171,3 +171,13 @@ input[type='range'] {
     visibility: visible;
     opacity: 1;
 }
+
+.session-timer {
+    padding: 8px 0;
+    text-align: center;
+    font-family: monospace;
+    font-size: 1.1em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.9);
+}

@@ -14,6 +14,7 @@ class SVGAnimation {
         this.initElements();
         this.initEventListeners();
         this.startPulseAnimation();
+        this.startSessionTimer();
     }
 
     initElements() {
@@ -93,6 +94,14 @@ class SVGAnimation {
             this.toggleSettingsPanel()
         );
         document.addEventListener('click', e => this.hideSettingsPanel(e));
+
+        // Add keyboard shortcut listener
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey && e.key.toLowerCase() === 'k') {
+                e.preventDefault(); // Prevent default browser behavior
+                this.toggleSettingsPanel();
+            }
+        });
     }
 
     onPlanetSizeChange(e) {
@@ -650,6 +659,25 @@ class SVGAnimation {
     getNextSize(baseSize, varianceFactor) {
         const maxVariance = baseSize * 4 * varianceFactor;
         return baseSize + Math.random() * maxVariance;
+    }
+
+    startSessionTimer() {
+        const startTime = Date.now();
+        const timerElement = document.getElementById('sessionTimer');
+
+        setInterval(() => {
+            const elapsedTime = Date.now() - startTime;
+            const hours = Math.floor(elapsedTime / 3600000)
+                .toString()
+                .padStart(2, '0');
+            const minutes = Math.floor((elapsedTime % 3600000) / 60000)
+                .toString()
+                .padStart(2, '0');
+            const seconds = Math.floor((elapsedTime % 60000) / 1000)
+                .toString()
+                .padStart(2, '0');
+            timerElement.textContent = `Session: ${hours}:${minutes}:${seconds}`;
+        }, 1000);
     }
 }
 

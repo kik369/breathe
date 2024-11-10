@@ -181,3 +181,31 @@ input[type='range'] {
     margin-bottom: 10px;
     color: rgba(255, 255, 255, 0.9);
 }
+
+.bmc-container {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.bmc-qr {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+    display: block;
+    border-radius: 8px;
+}
+
+.bmc-link {
+    display: block;
+    margin-top: 10px;
+    color: #667db6;
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: color 0.3s ease;
+}
+
+.bmc-link:hover {
+    color: #fff;
+}

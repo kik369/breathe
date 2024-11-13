@@ -43,9 +43,9 @@ class SVGAnimation {
         this.satellites = new SVG.List([]);
         this.satelliteBaseAngles = [];
         this.updateSatellites(
-            250,
+            50,
             this.updateMinPlanetSize(0.4),
-            this.updateSatelliteSize(0.2)
+            this.updateSatelliteSize(0.02)
         );
     }
 
@@ -367,12 +367,9 @@ class SVGAnimation {
             const restDuration = parseFloat(restSlider.value) * 1000;
 
             const lateralVarianceFactor = lateralVarianceSlider.value / 100;
-            const radialVarianceFactor = radialVarianceSlider.value / 100;
+            const varianceFactor = parseFloat(radialVarianceSlider.value);
             const isDynamicSize = document.getElementById(
                 'dynamicSizeVariance'
-            ).checked;
-            const isDynamicRadial = document.getElementById(
-                'dynamicRadialVariance'
             ).checked;
 
             const inhaleHoldDuration = inhaleDuration + holdDuration;
@@ -385,57 +382,63 @@ class SVGAnimation {
             const planetRadius = this.updateMinPlanetSize(currentScale);
 
             // Calculate new targets before animation starts
+            const maxPlanetRadius = (this.size * effectiveMaxScale) / 2;
+            const minPlanetRadius = (this.size * currentScale) / 2;
+
+            // Calculate positions only at the start of the full cycle
             this.satellites.each(satellite => {
-                if (lateralVarianceFactor > 0) {
-                    const currentAngle = satellite.data('currentAngle');
-                    const baseAngle = satellite.data('baseAngle');
-                    const newTargetAngle = this.getNextPosition(
-                        currentAngle,
-                        baseAngle,
-                        lateralVarianceFactor
-                    );
-                    satellite.data({
-                        targetAngle: newTargetAngle,
-                        startAngle: currentAngle,
-                    });
-                } else {
-                    satellite.data({
-                        targetAngle: satellite.data('baseAngle'),
-                        startAngle: satellite.data('currentAngle'),
-                    });
-                }
+                // Store the current actual position of the satellite
+                const currentX = satellite.cx() - this.size / 2;
+                const currentY = satellite.cy() - this.size / 2;
+                const currentDistance = Math.sqrt(
+                    currentX * currentX + currentY * currentY
+                );
+                const currentAngle = Math.atan2(currentY, currentX);
+
+                // Calculate new targets without changing current position
+                const newTargetAngle =
+                    lateralVarianceFactor > 0
+                        ? this.getNextPosition(
+                              currentAngle,
+                              satellite.data('baseAngle'),
+                              lateralVarianceFactor
+                          )
+                        : satellite.data('baseAngle');
+
+                // Store the actual current values as starting points
+                satellite.data({
+                    startAngle: currentAngle,
+                    targetAngle: newTargetAngle,
+                    currentAngle: currentAngle,
+                });
 
                 if (isDynamicSize) {
-                    const currentSize = satellite.data('currentSize');
+                    const currentSize = satellite.width();
                     const newTargetSize = this.getNextSize(
                         baseSatelliteSize,
                         sizeVarianceFactor
                     );
                     satellite.data({
-                        targetSize: newTargetSize,
                         startSize: currentSize,
+                        targetSize: newTargetSize,
+                        currentSize: currentSize,
                     });
                 }
 
-                if (radialVarianceFactor > 0) {
-                    const currentDistance =
-                        satellite.data('currentDistance') || planetRadius;
-                    const newTargetDistance = this.getNextRadialPosition(
-                        currentDistance,
-                        planetRadius,
-                        radialVarianceFactor
+                // Calculate new radial positions using current distance as starting point
+                const { inhaleDistance, exhaleDistance } =
+                    this.calculateCyclePositions(
+                        minPlanetRadius,
+                        maxPlanetRadius,
+                        varianceFactor
                     );
-                    satellite.data({
-                        targetDistance: newTargetDistance,
-                        startDistance: currentDistance,
-                    });
-                } else {
-                    satellite.data({
-                        targetDistance: planetRadius,
-                        startDistance:
-                            satellite.data('currentDistance') || planetRadius,
-                    });
-                }
+
+                satellite.data({
+                    currentDistance: currentDistance,
+                    startDistance: currentDistance,
+                    inhaleDistance: inhaleDistance,
+                    exhaleDistance: exhaleDistance,
+                });
             });
 
             // Inhale + Hold phase
@@ -446,7 +449,6 @@ class SVGAnimation {
                 })
                 .size(this.size * effectiveMaxScale)
                 .during(pos => {
-                    const currentPlanetSize = this.planet.width();
                     const color = this.interpolateColor(
                         startColor,
                         endColor,
@@ -455,22 +457,26 @@ class SVGAnimation {
                     this.updatePlanetGlow(
                         `rgb(${color.r}, ${color.g}, ${color.b})`
                     );
+
+                    // Satellite animation uses different timing
+                    const halfCyclePos =
+                        (pos * inhaleDuration) /
+                        (inhaleDuration + holdDuration);
+
                     this.satellites.each(satellite => {
                         const angle =
                             satellite.data('startAngle') +
-                            (this.normalizeAngle(
+                            this.normalizeAngle(
                                 satellite.data('targetAngle') -
                                     satellite.data('startAngle')
                             ) *
-                                (pos * inhaleDuration)) /
-                                inhaleHoldDuration;
+                                halfCyclePos;
 
+                        const startDistance = satellite.data('currentDistance');
+                        const targetDistance = satellite.data('inhaleDistance');
                         const distance =
-                            satellite.data('startDistance') +
-                            ((satellite.data('targetDistance') -
-                                satellite.data('startDistance')) *
-                                (pos * inhaleDuration)) /
-                                inhaleHoldDuration;
+                            startDistance +
+                            (targetDistance - startDistance) * halfCyclePos;
 
                         const x = this.size / 2 + Math.cos(angle) * distance;
                         const y = this.size / 2 + Math.sin(angle) * distance;
@@ -481,23 +487,18 @@ class SVGAnimation {
                     });
                 })
                 .after(() => {
-                    // Hold phase
+                    // Hold phase - planet stays static but satellites continue their animation
                     this.planet
                         .animate({
-                            ease: '<>',
                             duration: holdDuration,
                         })
                         .size(this.size * effectiveMaxScale)
                         .during(pos => {
-                            const currentPlanetSize = this.planet.width();
-                            const color = this.interpolateColor(
-                                startColor,
-                                endColor,
-                                1
-                            );
-                            this.updatePlanetGlow(
-                                `rgb(${color.r}, ${color.g}, ${color.b})`
-                            );
+                            // Continue satellite animation
+                            const halfCyclePos =
+                                (inhaleDuration + pos * holdDuration) /
+                                (inhaleDuration + holdDuration);
+
                             this.satellites.each(satellite => {
                                 const angle =
                                     satellite.data('startAngle') +
@@ -505,101 +506,58 @@ class SVGAnimation {
                                         satellite.data('targetAngle') -
                                             satellite.data('startAngle')
                                     ) *
-                                        ((inhaleDuration + pos * holdDuration) /
-                                            inhaleHoldDuration);
+                                        halfCyclePos;
 
+                                const startDistance =
+                                    satellite.data('currentDistance');
+                                const targetDistance =
+                                    satellite.data('inhaleDistance');
                                 const distance =
-                                    satellite.data('startDistance') +
-                                    (satellite.data('targetDistance') -
-                                        satellite.data('startDistance')) *
-                                        ((inhaleDuration + pos * holdDuration) /
-                                            inhaleHoldDuration);
+                                    startDistance +
+                                    (targetDistance - startDistance) *
+                                        halfCyclePos;
 
                                 const x =
                                     this.size / 2 + Math.cos(angle) * distance;
                                 const y =
                                     this.size / 2 + Math.sin(angle) * distance;
                                 satellite.center(x, y);
-                                satellite.fill(
-                                    `rgb(${color.r}, ${color.g}, ${color.b})`
-                                );
                             });
                         })
                         .after(() => {
-                            // Update current values
+                            // Before starting exhale, store the current positions and calculate new targets
                             this.satellites.each(satellite => {
-                                satellite.data(
-                                    'currentAngle',
-                                    satellite.data('targetAngle')
+                                const currentX = satellite.cx() - this.size / 2;
+                                const currentY = satellite.cy() - this.size / 2;
+                                const currentDistance = Math.sqrt(
+                                    currentX * currentX + currentY * currentY
                                 );
-                                if (isDynamicSize) {
-                                    satellite.data(
-                                        'currentSize',
-                                        satellite.data('targetSize')
-                                    );
-                                }
-                                if (isDynamicRadial) {
-                                    satellite.data(
-                                        'currentDistance',
-                                        satellite.data('targetDistance')
-                                    );
-                                }
+                                const currentAngle = Math.atan2(
+                                    currentY,
+                                    currentX
+                                );
+
+                                // Calculate new orbital target for exhale phase
+                                const newTargetAngle =
+                                    lateralVarianceFactor > 0
+                                        ? this.getNextPosition(
+                                              currentAngle,
+                                              satellite.data('baseAngle'),
+                                              lateralVarianceFactor
+                                          )
+                                        : satellite.data('baseAngle');
+
+                                // Update the starting positions for exhale phase
+                                satellite.data({
+                                    startAngle: currentAngle,
+                                    targetAngle: newTargetAngle,
+                                    currentAngle: currentAngle,
+                                    startDistance: currentDistance,
+                                    currentDistance: currentDistance,
+                                });
                             });
 
-                            // Calculate new targets for exhale phase
-                            this.satellites.each(satellite => {
-                                if (lateralVarianceFactor > 0) {
-                                    const newTargetAngle = this.getNextPosition(
-                                        satellite.data('currentAngle'),
-                                        satellite.data('baseAngle'),
-                                        lateralVarianceFactor
-                                    );
-                                    satellite.data({
-                                        targetAngle: newTargetAngle,
-                                        startAngle:
-                                            satellite.data('currentAngle'),
-                                    });
-                                } else {
-                                    satellite.data({
-                                        targetAngle:
-                                            satellite.data('baseAngle'),
-                                        startAngle:
-                                            satellite.data('currentAngle'),
-                                    });
-                                }
-                                if (isDynamicSize) {
-                                    const newTargetSize = this.getNextSize(
-                                        baseSatelliteSize,
-                                        sizeVarianceFactor
-                                    );
-                                    satellite.data({
-                                        targetSize: newTargetSize,
-                                        startSize:
-                                            satellite.data('currentSize'),
-                                    });
-                                }
-                                if (radialVarianceFactor > 0) {
-                                    const newTargetDistance =
-                                        this.getNextRadialPosition(
-                                            satellite.data('currentDistance'),
-                                            planetRadius,
-                                            radialVarianceFactor
-                                        );
-                                    satellite.data({
-                                        targetDistance: newTargetDistance,
-                                        startDistance:
-                                            satellite.data('currentDistance'),
-                                    });
-                                } else {
-                                    satellite.data({
-                                        targetDistance: planetRadius,
-                                        startDistance:
-                                            satellite.data('currentDistance'),
-                                    });
-                                }
-                            });
-
-                            // Exhale + Rest phase
+                            // Start exhale animation
                             this.planet
                                 .animate({
                                     ease: '<>',
@@ -607,8 +565,6 @@ class SVGAnimation {
                                 })
                                 .size(this.size * currentScale)
                                 .during(pos => {
-                                    const currentPlanetSize =
-                                        this.planet.width();
                                     const color = this.interpolateColor(
                                         endColor,
                                         startColor,
@@ -617,24 +573,28 @@ class SVGAnimation {
                                     this.updatePlanetGlow(
                                         `rgb(${color.r}, ${color.g}, ${color.b})`
                                     );
+
+                                    const halfCyclePos =
+                                        (pos * exhaleDuration) /
+                                        (exhaleDuration + restDuration);
+
                                     this.satellites.each(satellite => {
                                         const angle =
                                             satellite.data('startAngle') +
-                                            (this.normalizeAngle(
+                                            this.normalizeAngle(
                                                 satellite.data('targetAngle') -
                                                     satellite.data('startAngle')
                                             ) *
-                                                (pos * exhaleDuration)) /
-                                                exhaleRestDuration;
+                                                halfCyclePos;
 
+                                        const startDistance =
+                                            satellite.data('startDistance');
+                                        const targetDistance =
+                                            satellite.data('exhaleDistance');
                                         const distance =
-                                            satellite.data('startDistance') +
-                                            ((satellite.data('targetDistance') -
-                                                satellite.data(
-                                                    'startDistance'
-                                                )) *
-                                                (pos * exhaleDuration)) /
-                                                exhaleRestDuration;
+                                            startDistance +
+                                            (targetDistance - startDistance) *
+                                                halfCyclePos;
 
                                         const x =
                                             this.size / 2 +
@@ -649,24 +609,19 @@ class SVGAnimation {
                                     });
                                 })
                                 .after(() => {
-                                    // Rest phase
+                                    // Rest phase - planet stays static but satellites continue their animation
                                     this.planet
                                         .animate({
-                                            ease: '<>',
                                             duration: restDuration,
                                         })
                                         .size(this.size * currentScale)
                                         .during(pos => {
-                                            const currentPlanetSize =
-                                                this.planet.width();
-                                            const color = this.interpolateColor(
-                                                endColor,
-                                                startColor,
-                                                1
-                                            );
-                                            this.updatePlanetGlow(
-                                                `rgb(${color.r}, ${color.g}, ${color.b})`
-                                            );
+                                            // Continue satellite animation
+                                            const halfCyclePos =
+                                                (exhaleDuration +
+                                                    pos * restDuration) /
+                                                (exhaleDuration + restDuration);
+
                                             this.satellites.each(satellite => {
                                                 const angle =
                                                     satellite.data(
@@ -680,25 +635,21 @@ class SVGAnimation {
                                                                 'startAngle'
                                                             )
                                                     ) *
-                                                        ((exhaleDuration +
-                                                            pos *
-                                                                restDuration) /
-                                                            exhaleRestDuration);
+                                                        halfCyclePos;
 
-                                                const distance =
+                                                const startDistance =
                                                     satellite.data(
-                                                        'startDistance'
-                                                    ) +
-                                                    (satellite.data(
-                                                        'targetDistance'
-                                                    ) -
-                                                        satellite.data(
-                                                            'startDistance'
-                                                        )) *
-                                                        ((exhaleDuration +
-                                                            pos *
-                                                                restDuration) /
-                                                            exhaleRestDuration);
+                                                        'inhaleDistance'
+                                                    );
+                                                const targetDistance =
+                                                    satellite.data(
+                                                        'exhaleDistance'
+                                                    );
+                                                const distance =
+                                                    startDistance +
+                                                    (targetDistance -
+                                                        startDistance) *
+                                                        halfCyclePos;
 
                                                 const x =
                                                     this.size / 2 +
@@ -707,38 +658,35 @@ class SVGAnimation {
                                                     this.size / 2 +
                                                     Math.sin(angle) * distance;
                                                 satellite.center(x, y);
-                                                satellite.fill(
-                                                    `rgb(${color.r}, ${color.g}, ${color.b})`
-                                                );
                                             });
                                         })
                                         .after(() => {
-                                            // Update final values
+                                            // Update for next cycle
                                             this.satellites.each(satellite => {
                                                 satellite.data(
-                                                    'currentAngle',
+                                                    'currentDistance',
                                                     satellite.data(
-                                                        'targetAngle'
+                                                        'exhaleDistance'
                                                     )
                                                 );
-                                                if (isDynamicSize) {
-                                                    satellite.data(
-                                                        'currentSize',
-                                                        satellite.data(
-                                                            'targetSize'
-                                                        )
+
+                                                // Calculate new positions for next cycle
+                                                const {
+                                                    inhaleDistance,
+                                                    exhaleDistance,
+                                                } =
+                                                    this.calculateCyclePositions(
+                                                        minPlanetRadius,
+                                                        maxPlanetRadius,
+                                                        varianceFactor
                                                     );
-                                                }
-                                                if (isDynamicRadial) {
-                                                    satellite.data(
-                                                        'currentDistance',
-                                                        satellite.data(
-                                                            'targetDistance'
-                                                        )
-                                                    );
-                                                }
+                                                satellite.data({
+                                                    inhaleDistance,
+                                                    exhaleDistance,
+                                                });
                                             });
-                                            animate();
+
+                                            animate(); // Start next cycle
                                         });
                                 });
                         });
@@ -768,8 +716,19 @@ class SVGAnimation {
 
     getNextPosition(currentAngle, baseAngle, varianceFactor) {
         const maxDeviation = Math.PI * varianceFactor;
-        const randomOffset = (Math.random() - 0.5) * 2 * maxDeviation;
-        return this.normalizeAngle(currentAngle + randomOffset);
+        // Use a smaller random range for smoother transitions
+        const randomOffset = (Math.random() - 0.5) * maxDeviation;
+        // Gradually move towards base angle while adding variance
+        const targetAngle = baseAngle + randomOffset;
+        // Normalize the difference to prevent sudden jumps
+        const angleDiff = this.normalizeAngle(targetAngle - currentAngle);
+        // Limit the maximum change per cycle
+        const maxChange = Math.PI / 4; // 45 degrees max change
+        const limitedDiff = Math.max(
+            Math.min(angleDiff, maxChange),
+            -maxChange
+        );
+        return this.normalizeAngle(currentAngle + limitedDiff);
     }
 
     getMaxPlanetScale(baseSatelliteSize) {
@@ -787,13 +746,9 @@ class SVGAnimation {
         return baseSize + Math.random() * maxVariance;
     }
 
-    getNextRadialPosition(currentDistance, planetRadius, varianceFactor) {
-        const maxDeviation = planetRadius * varianceFactor;
-        const randomOffset = (Math.random() - 0.5) * 2 * maxDeviation;
-        return Math.max(
-            0,
-            Math.min(planetRadius * 2, currentDistance + randomOffset)
-        );
+    calculateHalfCycleRadialPosition(planetRadius, varianceFactor) {
+        const maxOffset = planetRadius * (varianceFactor / 100);
+        return planetRadius + Math.random() * maxOffset;
     }
 
     startSessionTimer() {
@@ -813,6 +768,29 @@ class SVGAnimation {
                 .padStart(2, '0');
             timerElement.textContent = `Session: ${hours}:${minutes}:${seconds}`;
         }, 1000);
+    }
+
+    // Update the calculateCyclePositions method to be more stable:
+    calculateCyclePositions(minPlanetRadius, maxPlanetRadius, varianceFactor) {
+        if (varianceFactor === 0) {
+            return {
+                inhaleDistance: maxPlanetRadius,
+                exhaleDistance: minPlanetRadius,
+            };
+        }
+
+        // Calculate one random offset percentage for the entire cycle
+        const offsetPercentage = Math.random();
+        const maxInhaleOffset = maxPlanetRadius * (varianceFactor / 100);
+        const maxExhaleOffset = minPlanetRadius * (varianceFactor / 100);
+
+        // Use the same percentage for both positions to maintain relative distance
+        return {
+            inhaleDistance:
+                maxPlanetRadius + maxInhaleOffset * offsetPercentage,
+            exhaleDistance:
+                minPlanetRadius + maxExhaleOffset * offsetPercentage,
+        };
     }
 }
 

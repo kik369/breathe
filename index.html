@@ -45,27 +45,27 @@
 
                         <label for="maxPlanetSizeSlider">
                             Maximum Planet Size:
-                            <span id="maxPlanetSliderValue">100</span>%
+                            <span id="maxPlanetSliderValue">70</span>%
                         </label>
                         <input
                             type="range"
                             id="maxPlanetSizeSlider"
                             min="0"
                             max="100"
-                            value="100"
+                            value="70"
                             step="1"
                         />
 
                         <label for="satelliteSizeSlider"
                             >Satellite Size:
-                            <span id="satelliteSizeValue">20</span>%</label
+                            <span id="satelliteSizeValue">2</span>%</label
                         >
                         <input
                             type="range"
                             id="satelliteSizeSlider"
                             min="0"
                             max="100"
-                            value="20"
+                            value="2"
                             step="1"
                         />
 
@@ -108,14 +108,14 @@
 
                         <label for="holdSlider"
                             >Hold Duration:
-                            <span id="holdValue">1</span>s</label
+                            <span id="holdValue">2</span>s</label
                         >
                         <input
                             type="range"
                             id="holdSlider"
                             min="0"
                             max="10"
-                            value="1"
+                            value="2"
                             step="1"
                         />
 
@@ -134,14 +134,14 @@
 
                         <label for="restSlider"
                             >Rest Duration:
-                            <span id="restValue">1</span>s</label
+                            <span id="restValue">2</span>s</label
                         >
                         <input
                             type="range"
                             id="restSlider"
                             min="0"
                             max="10"
-                            value="1"
+                            value="2"
                             step="1"
                         />
                     </div>
@@ -158,53 +158,53 @@
                     <div class="settings-group-content" id="satellites-content">
                         <label for="satelliteCountSlider"
                             >Satellites:
-                            <span id="satelliteCountValue">300</span></label
+                            <span id="satelliteCountValue">50</span></label
                         >
                         <input
                             type="range"
                             id="satelliteCountSlider"
                             min="0"
                             max="500"
-                            value="300"
+                            value="50"
                             step="1"
                         />
 
                         <label for="satelliteVarianceSlider"
                             >Size Variance:
-                            <span id="satelliteVarianceValue">35</span>%</label
+                            <span id="satelliteVarianceValue">5</span>%</label
                         >
                         <input
                             type="range"
                             id="satelliteVarianceSlider"
                             min="0"
                             max="100"
-                            value="35"
+                            value="5"
                             step="1"
                         />
 
                         <label for="lateralVarianceSlider">
                             Orbital Position Variance:
-                            <span id="lateralVarianceValue">15</span>%
+                            <span id="lateralVarianceValue">100</span>%
                         </label>
                         <input
                             type="range"
                             id="lateralVarianceSlider"
                             min="0"
                             max="100"
-                            value="15"
+                            value="100"
                             step="1"
                         />
 
                         <label for="radialVarianceSlider">
                             Radial Position Variance:
-                            <span id="radialVarianceValue">0</span>%
+                            <span id="radialVarianceValue">100</span>%
                         </label>
                         <input
                             type="range"
                             id="radialVarianceSlider"
                             min="0"
                             max="100"
-                            value="0"
+                            value="100"
                             step="1"
                         />
 
@@ -226,21 +226,6 @@
                                     sets the boundary for this effect. Higher
                                     values mean more variation.</span
                                 >
-                            </span>
-                        </div>
-
-                        <div class="checkbox-container">
-                            <input type="checkbox" id="dynamicRadialVariance" />
-                            <label for="dynamicRadialVariance"
-                                >Dynamic Radial Variance</label
-                            >
-                            <span class="tooltip">
-                                ℹ️
-                                <span class="tooltiptext">
-                                    Dynamic Radial Variance adjusts the
-                                    satellite radial position variance over
-                                    time, creating a breathing effect.
-                                </span>
                             </span>
                         </div>
                     </div>

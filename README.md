@@ -1,21 +1,31 @@
-# Breathing Circle Animation
+# Breathe: Meditative SVG Breathing Visualization
 
-An interactive SVG animation that creates a mesmerizing breathing circle effect using SVG.js. The animation features a central pulsing planet surrounded by orbiting satellites that respond to the breathing rhythm.
+A dynamic, interactive breathing visualization that uses SVG.js to create a mesmerizing, customizable breathing experience.
 
-## Features
+## Core Features
 
--   Customizable breathing pattern (inhale, hold, exhale, rest durations)
--   Adjustable planet and satellite sizes
--   Dynamic satellite behavior with size and position variance
--   Configurable glow effects
--   Responsive design that adapts to window size
--   Settings panel for real-time parameter adjustments
+-   Animated central "planet" that pulses with breathing rhythm
+-   Orbiting "satellites" that move dynamically with breath cycle
+-   Fully configurable breathing parameters:
+    -   Inhale, hold, exhale, and rest durations
+    -   Planet and satellite size controls
+    -   Orbital and size variance
+-   Real-time settings panel
+-   Responsive design
+-   Session timer
 
-## Usage
+## Technical Highlights
 
-1. Open `index.html` in a modern web browser
-2. Click the gear icon to access animation controls
-3. Adjust sliders to customize the animation
+-   Uses SVG.js for lightweight, performant animations
+-   Procedural animation with complex mathematical positioning
+-   Smooth color and size transitions
+-   Randomized satellite behavior for organic feel
+
+## Quick Start
+
+1. Open `index.html`
+2. Click gear icon to adjust breathing parameters
+3. Customize and relax!
 
 ## Dependencies
 

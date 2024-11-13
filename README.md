@@ -1,31 +1,41 @@
 # Breathe: Meditative SVG Breathing Visualization
 
-A dynamic, interactive breathing visualization that uses SVG.js to create a mesmerizing, customizable breathing experience.
+A dynamic, interactive breathing visualization that helps you control and track your breathing rhythm.
+
+## Live App
+
+🌐 [https://breathcontrol.app/](https://breathcontrol.app/)
 
 ## Core Features
 
 -   Animated central "planet" that pulses with breathing rhythm
--   Orbiting "satellites" that move dynamically with breath cycle
--   Fully configurable breathing parameters:
+-   Configurable breathing parameters:
     -   Inhale, hold, exhale, and rest durations
-    -   Planet and satellite size controls
-    -   Orbital and size variance
+    -   Planet size range (40-70%)
+    -   Satellite count and behavior
+-   Dynamic satellite sizing with variance control
 -   Real-time settings panel
+-   Session timer tracking
 -   Responsive design
--   Session timer
+
+## Customization Options
+
+-   Adjust breath cycle timings
+-   Control planet and satellite sizes
+-   Set satellite count and movement variance
+-   Dynamic size effect for organic breathing visualization
 
 ## Technical Highlights
 
 -   Uses SVG.js for lightweight, performant animations
--   Procedural animation with complex mathematical positioning
+-   Procedural animation with mathematical positioning
 -   Smooth color and size transitions
--   Randomized satellite behavior for organic feel
 
 ## Quick Start
 
-1. Open `index.html`
-2. Click gear icon to adjust breathing parameters
-3. Customize and relax!
+1. Visit [https://breathcontrol.app/](https://breathcontrol.app/)
+2. Use settings panel to customize breathing parameters
+3. Begin your mindful breathing session
 
 ## Dependencies
 

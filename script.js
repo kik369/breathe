@@ -22,6 +22,7 @@ class SVGAnimation {
         this.initEventListeners();
         this.startPulseAnimation();
         this.startSessionTimer();
+        this.initTimer();
     }
 
     initElements() {
@@ -160,6 +161,22 @@ class SVGAnimation {
                     currentContent.classList.add('active');
                 }
             });
+        });
+    }
+
+    initTimer() {
+        const showTimerCheckbox = document.getElementById('showTimerCheckbox');
+        const timerDisplay = document.getElementById('timer-display');
+        const progressBarContainer = document.getElementById('progress-bar-container');
+
+        showTimerCheckbox.addEventListener('change', () => {
+            if (showTimerCheckbox.checked) {
+                timerDisplay.style.display = 'block';
+                progressBarContainer.style.display = 'block';
+            } else {
+                timerDisplay.style.display = 'none';
+                progressBarContainer.style.display = 'none';
+            }
         });
     }
 
@@ -416,8 +433,10 @@ class SVGAnimation {
                         `rgb(${color.r}, ${color.g}, ${color.b})`
                     );
 
-                    const halfCyclePos =
-                        (pos * timings.inhale) / timings.inhaleHold;
+                    const remainingTime = timings.inhale * (1 - pos);
+                    this.updateTimerDisplay(remainingTime, 'Inhale', pos);
+
+                    const halfCyclePos = (pos * timings.inhale) / timings.inhaleHold;
                     this.updateSatellitesForPhase(
                         halfCyclePos,
                         'inhale',
@@ -432,6 +451,8 @@ class SVGAnimation {
                         })
                         .size(this.size * effectiveMaxScale)
                         .during(pos => {
+                            const remainingTime = timings.hold * (1 - pos);
+                            this.updateTimerDisplay(remainingTime, 'Hold', pos);
                             // Continue satellite animation
                             const halfCyclePos =
                                 (timings.inhale + pos * timings.hold) /
@@ -503,6 +524,8 @@ class SVGAnimation {
                                 })
                                 .size(this.size * currentScale)
                                 .during(pos => {
+                                    const remainingTime = timings.exhale * (1 - pos);
+                                    this.updateTimerDisplay(remainingTime, 'Exhale', pos);
                                     const color = this.interpolateColor(
                                         colors.end,
                                         colors.start,
@@ -554,6 +577,8 @@ class SVGAnimation {
                                         })
                                         .size(this.size * currentScale)
                                         .during(pos => {
+                                            const remainingTime = timings.rest * (1 - pos);
+                                            this.updateTimerDisplay(remainingTime, 'Rest', pos);
                                             // Continue satellite animation
                                             const halfCyclePos =
                                                 (timings.exhale +
@@ -714,6 +739,17 @@ class SVGAnimation {
                 .padStart(2, '0');
             timerElement.textContent = `Session: ${hours}:${minutes}:${seconds}`;
         }, 1000);
+    }
+
+    updateTimerDisplay(remainingTime, phase, progress) {
+        const timerDisplay = document.getElementById('timer-display');
+        const progressBar = document.getElementById('progress-bar');
+
+        if (timerDisplay.style.display === 'block') {
+            const seconds = Math.round(remainingTime / 1000);
+            timerDisplay.textContent = `${phase}: ${seconds}s`;
+            progressBar.style.width = `${progress * 100}%`;
+        }
     }
 
     calculateCyclePositions(minPlanetRadius, maxPlanetRadius, varianceFactor) {

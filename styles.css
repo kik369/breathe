@@ -311,3 +311,33 @@ input[type='range'] {
 .checkbox-container label {
     margin: 0;
 }
+
+#timer-display {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 2em;
+    font-family: monospace;
+    display: none;
+}
+
+#progress-bar-container {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 5px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 2.5px;
+    display: none;
+}
+
+#progress-bar {
+    width: 0;
+    height: 100%;
+    background-color: white;
+    border-radius: 2.5px;
+}

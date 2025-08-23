@@ -6,14 +6,7 @@
 	"compatibility_flags": [
 		"global_fetch_strictly_public"
 	],
-	"assets": {
-		"directory": "./public"
-	},
 	"observability": {
 		"enabled": true
-	},
-    "route": {
-        "pattern": "functions.kris2511.workers.dev/*",
-        "zone_name": "kris2511.workers.dev"
-    }
+	}
 }

@@ -162,12 +162,19 @@ class SVGAnimation {
                 }
             });
         });
+
+        const unlockPremiumBtn = document.getElementById('unlockPremiumBtn');
+        unlockPremiumBtn.addEventListener('click', () =>
+            this.handlePremiumUnlock()
+        );
     }
 
     initTimer() {
         const showTimerCheckbox = document.getElementById('showTimerCheckbox');
         const timerDisplay = document.getElementById('timer-display');
-        const progressBarContainer = document.getElementById('progress-bar-container');
+        const progressBarContainer = document.getElementById(
+            'progress-bar-container'
+        );
 
         showTimerCheckbox.addEventListener('change', () => {
             if (showTimerCheckbox.checked) {
@@ -436,7 +443,8 @@ class SVGAnimation {
                     const remainingTime = timings.inhale * (1 - pos);
                     this.updateTimerDisplay(remainingTime, 'Inhale', pos);
 
-                    const halfCyclePos = (pos * timings.inhale) / timings.inhaleHold;
+                    const halfCyclePos =
+                        (pos * timings.inhale) / timings.inhaleHold;
                     this.updateSatellitesForPhase(
                         halfCyclePos,
                         'inhale',
@@ -524,8 +532,13 @@ class SVGAnimation {
                                 })
                                 .size(this.size * currentScale)
                                 .during(pos => {
-                                    const remainingTime = timings.exhale * (1 - pos);
-                                    this.updateTimerDisplay(remainingTime, 'Exhale', pos);
+                                    const remainingTime =
+                                        timings.exhale * (1 - pos);
+                                    this.updateTimerDisplay(
+                                        remainingTime,
+                                        'Exhale',
+                                        pos
+                                    );
                                     const color = this.interpolateColor(
                                         colors.end,
                                         colors.start,
@@ -577,8 +590,13 @@ class SVGAnimation {
                                         })
                                         .size(this.size * currentScale)
                                         .during(pos => {
-                                            const remainingTime = timings.rest * (1 - pos);
-                                            this.updateTimerDisplay(remainingTime, 'Rest', pos);
+                                            const remainingTime =
+                                                timings.rest * (1 - pos);
+                                            this.updateTimerDisplay(
+                                                remainingTime,
+                                                'Rest',
+                                                pos
+                                            );
                                             // Continue satellite animation
                                             const halfCyclePos =
                                                 (timings.exhale +
@@ -879,6 +897,47 @@ class SVGAnimation {
                 satellite.fill(`rgb(${color.r}, ${color.g}, ${color.b})`);
             }
         });
+    }
+
+    async handlePremiumUnlock() {
+        console.log('Attempting to unlock premium...');
+        const unlockButton = document.getElementById('unlockPremiumBtn');
+        unlockButton.textContent = 'Processing...';
+        unlockButton.disabled = true;
+
+        try {
+            // The URL for your deployed worker. Replace with your actual worker URL.
+            const workerUrl = 'https://functions.kris2511.workers.dev';
+
+            const response = await fetch(workerUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // You can send data here if needed in the future
+                // body: JSON.stringify({ plan: 'lifetime' }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.checkout_url) {
+                // Redirect the user to the secure checkout page
+                window.location.href = data.checkout_url;
+            } else {
+                throw new Error('Checkout URL not found in response.');
+            }
+        } catch (error) {
+            console.error('Failed to get checkout URL:', error);
+            alert(
+                'Could not connect to the payment server. Please try again later.'
+            );
+            unlockButton.textContent = 'Unlock Lifetime Premium';
+            unlockButton.disabled = false;
+        }
     }
 }
 

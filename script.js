@@ -1,5 +1,8 @@
 class SVGAnimation {
     constructor() {
+        this.isPremium = false;
+        this.sessionHistory = [];
+
         const minScreenDim = Math.min(window.innerWidth, window.innerHeight);
 
         if (window.innerWidth > 768) {
@@ -23,6 +26,8 @@ class SVGAnimation {
         this.startPulseAnimation();
         this.startSessionTimer();
         this.initTimer();
+        this.loadAnalyticsData();
+        this.checkForPremium();
     }
 
     initElements() {
@@ -742,9 +747,10 @@ class SVGAnimation {
 
     startSessionTimer() {
         const startTime = Date.now();
+        this.currentSessionStartTime = startTime; // Store start time for logging
         const timerElement = document.getElementById('sessionTimer');
 
-        setInterval(() => {
+        this.sessionInterval = setInterval(() => {
             const elapsedTime = Date.now() - startTime;
             const hours = Math.floor(elapsedTime / 3600000)
                 .toString()
@@ -757,6 +763,9 @@ class SVGAnimation {
                 .padStart(2, '0');
             timerElement.textContent = `Session: ${hours}:${minutes}:${seconds}`;
         }, 1000);
+
+        // Add event listener to log session when user leaves the page
+        window.addEventListener('beforeunload', () => this.logCurrentSession());
     }
 
     updateTimerDisplay(remainingTime, phase, progress) {
@@ -938,6 +947,110 @@ class SVGAnimation {
             unlockButton.textContent = 'Unlock Lifetime Premium';
             unlockButton.disabled = false;
         }
+    }
+
+    logCurrentSession() {
+        if (!this.isPremium || !this.currentSessionStartTime) return;
+
+        const sessionEndTime = Date.now();
+        const duration = sessionEndTime - this.currentSessionStartTime;
+
+        // Only log sessions longer than 30 seconds
+        if (duration < 30000) return;
+
+        const sessionData = {
+            date: new Date().toISOString(),
+            duration: duration, // in milliseconds
+            inhale: inhaleSlider.value,
+            hold: holdSlider.value,
+            exhale: exhaleSlider.value,
+            rest: restSlider.value,
+        };
+
+        this.sessionHistory.unshift(sessionData); // Add to beginning of array
+        // Keep only the last 100 sessions
+        if (this.sessionHistory.length > 100) {
+            this.sessionHistory.pop();
+        }
+        localStorage.setItem('sessionHistory', JSON.stringify(this.sessionHistory));
+        this.displayAnalytics();
+    }
+
+    loadAnalyticsData() {
+        const storedHistory = localStorage.getItem('sessionHistory');
+        if (storedHistory) {
+            this.sessionHistory = JSON.parse(storedHistory);
+        }
+    }
+
+    checkForPremium() {
+        // 1. Check for the success URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('payment') && urlParams.get('payment') === 'success') {
+            localStorage.setItem('isPremiumUser', 'true');
+            // Clean the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // 2. Check localStorage for the premium flag
+        if (localStorage.getItem('isPremiumUser') === 'true') {
+            this.isPremium = true;
+        }
+
+        // 3. Update the UI based on premium status
+        this.updateUIAfterPremiumCheck();
+    }
+
+    updateUIAfterPremiumCheck() {
+        const premiumGroup = document.querySelector('[data-group="premium"]');
+        const analyticsGroup = document.getElementById('analytics-panel');
+
+        if (this.isPremium) {
+            if (premiumGroup) {
+                premiumGroup.style.display = 'none'; // Hide the upgrade button
+            }
+            if (analyticsGroup) {
+                analyticsGroup.style.display = 'block'; // Show analytics panel
+            }
+            this.displayAnalytics();
+        } else {
+            if (analyticsGroup) {
+                analyticsGroup.style.display = 'block'; // Show analytics but with a prompt
+                const content = document.getElementById('analytics-content');
+                content.innerHTML = `<p style="color: #ccc; text-align: center;">Unlock premium to track your session history and see your progress.</p>`;
+            }
+        }
+    }
+
+    displayAnalytics() {
+        if (!this.isPremium) return;
+
+        const content = document.getElementById('analytics-content');
+        if (!this.sessionHistory.length) {
+            content.innerHTML = `<p style="color: #ccc; text-align: center;">Your session history will appear here after you complete a session of at least 30 seconds.</p>`;
+            return;
+        }
+
+        const totalMinutes = this.sessionHistory.reduce((acc, session) => acc + session.duration, 0) / 60000;
+        
+        let historyHtml = `<div style="margin-bottom: 15px; text-align: center;">
+            <strong style="color: white;">Total Time:</strong> <span style="color: #ccc;">${Math.round(totalMinutes)} minutes</span><br>
+            <strong style="color: white;">Total Sessions:</strong> <span style="color: #ccc;">${this.sessionHistory.length}</span>
+        </div>
+        <div style="max-height: 200px; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">`;
+
+        this.sessionHistory.forEach(session => {
+            const date = new Date(session.date);
+            const durationMins = (session.duration / 60000).toFixed(1);
+            historyHtml += `<div style="font-size: 0.8em; color: #ccc; margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;">
+                <span>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</span><br>
+                <span>Duration: ${durationMins} min</span> | 
+                <span>Pattern: ${session.inhale}-${session.hold}-${session.exhale}-${session.rest}</span>
+            </div>`;
+        });
+
+        historyHtml += `</div>`;
+        content.innerHTML = historyHtml;
     }
 }
 

@@ -7,19 +7,31 @@ export interface Env {
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://breathcontrol.app',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
 };
 
 function handleOptions(request: Request) {
+  // Make sure the necessary headers are present
+  // for this to be a valid pre-flight request
+  let headers = request.headers;
   if (
-    request.headers.get('Origin') !== null &&
-    request.headers.get('Access-Control-Request-Method') !== null &&
-    request.headers.get('Access-Control-Request-Headers') !== null
+    headers.get('Origin') !== null &&
+    headers.get('Access-Control-Request-Method') !== null &&
+    headers.get('Access-Control-Request-Headers') !== null
   ) {
+    // Handle CORS pre-flight request.
+    // If you want to check the requested method + headers
+    // you can do that here.
+    let respHeaders = {
+      ...corsHeaders,
+      'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers')!,
+      'Access-Control-Max-Age': '86400',
+    };
     return new Response(null, {
-      headers: corsHeaders,
+      headers: respHeaders,
     });
   } else {
+    // Handle standard OPTIONS request.
+    // If you want to allow other HTTP Methods, you can add them here
     return new Response(null, {
       headers: {
         Allow: 'POST, OPTIONS',
@@ -56,24 +68,29 @@ export default {
         checkout_url: mockCheckoutUrl,
       });
 
-      return new Response(responseBody, {
+      let response = new Response(responseBody, {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          ...corsHeaders,
+          ...corsHeaders
         },
       });
+
+      return response;
 
     } catch (error: any) {
       console.error('Error:', error.message);
       const errorResponse = { error: 'Failed to create checkout session.' };
-      return new Response(JSON.stringify(errorResponse), {
+      
+      let response = new Response(JSON.stringify(errorResponse), {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          ...corsHeaders,
+          ...corsHeaders
         },
       });
+      
+      return response;
     }
   },
 };

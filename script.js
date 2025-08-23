@@ -1,11 +1,15 @@
-const supabase = supabase.createClient('https://vzcgifvscoushaauzmam.supabase.co', 'sb_publishable_IlCmV0WFMg7kRjhpnB8sjw_gfpaKvlu');
+const { createClient } = supabase;
+
+const SUPABASE_URL = 'https://vzcgifvscoushaauzmam.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_IlCmV0WFMg7kRjhpnB8sjw_gfpaKvlu';
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 class SVGAnimation {
     constructor() {
         this.user = null;
         this.isPremium = false;
         this.sessionHistory = [];
-        this.supabase = supabase; // Add supabase client to the class instance
+        this.supabase = supabaseClient; // Add supabase client to the class instance
 
         const minScreenDim = Math.min(window.innerWidth, window.innerHeight);
 

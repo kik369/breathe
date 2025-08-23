@@ -952,9 +952,13 @@ class SVGAnimation {
     updateAuthUI() {
         const authContent = document.getElementById('auth-content');
         if (this.user) {
+            const premiumBadge = this.isPremium ? '<span style="background-color: #667db6; color: white; font-size: 0.7em; padding: 2px 6px; border-radius: 4px; margin-left: 10px;">Premium</span>' : '';
             authContent.innerHTML = `
-                <p style="color: white; font-size: 0.9em;">Logged in as: ${this.user.email}</p>
-                <button id="logoutBtn" style="width: 100%; padding: 10px; background-color: #888; color: white; border: none; border-radius: 4px; cursor: pointer;">Logout</button>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <p style="color: white; font-size: 0.9em; margin: 0;">Logged in as: ${this.user.email}</p>
+                    ${premiumBadge}
+                </div>
+                <button id="logoutBtn" style="width: 100%; padding: 10px; background-color: #888; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px;">Logout</button>
             `;
             document.getElementById('logoutBtn').addEventListener('click', () => this.supabase.auth.signOut());
         } else {

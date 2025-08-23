@@ -1,7 +1,11 @@
+const supabase = supabase.createClient('https://vzcgifvscoushaauzmam.supabase.co', 'sb_publishable_IlCmV0WFMg7kRjhpnB8sjw_gfpaKvlu');
+
 class SVGAnimation {
     constructor() {
+        this.user = null;
         this.isPremium = false;
         this.sessionHistory = [];
+        this.supabase = supabase; // Add supabase client to the class instance
 
         const minScreenDim = Math.min(window.innerWidth, window.innerHeight);
 
@@ -27,7 +31,7 @@ class SVGAnimation {
         this.startSessionTimer();
         this.initTimer();
         this.loadAnalyticsData();
-        this.checkForPremium();
+        this.handleAuthStateChange();
     }
 
     initElements() {
@@ -908,7 +912,79 @@ class SVGAnimation {
         });
     }
 
+    handleAuthStateChange() {
+        this.supabase.auth.onAuthStateChange((event, session) => {
+            this.user = session ? session.user : null;
+            this.updateAuthUI();
+            this.fetchUserProfile();
+        });
+    }
+
+    async fetchUserProfile() {
+        if (!this.user) {
+            this.isPremium = false;
+            this.updateUIAfterPremiumCheck();
+            return;
+        }
+
+        const { data, error } = await this.supabase
+            .from('profiles')
+            .select('is_premium')
+            .eq('id', this.user.id)
+            .single();
+        
+        if (error) {
+            console.error('Error fetching user profile:', error);
+            this.isPremium = false;
+        } else {
+            this.isPremium = data ? data.is_premium : false;
+        }
+        
+        // Now load analytics and update the UI
+        this.loadAnalyticsData(); 
+        this.updateUIAfterPremiumCheck();
+    }
+
+    updateAuthUI() {
+        const authContent = document.getElementById('auth-content');
+        if (this.user) {
+            authContent.innerHTML = `
+                <p style="color: white; font-size: 0.9em;">Logged in as: ${this.user.email}</p>
+                <button id="logoutBtn" style="width: 100%; padding: 10px; background-color: #888; color: white; border: none; border-radius: 4px; cursor: pointer;">Logout</button>
+            `;
+            document.getElementById('logoutBtn').addEventListener('click', () => this.supabase.auth.signOut());
+        } else {
+            authContent.innerHTML = `
+                <p style="color: white; font-size: 0.9em;">Log in to save your premium status and track your progress.</p>
+                <input type="email" id="emailInput" placeholder="Enter your email" style="width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ccc;">
+                <button id="loginBtn" style="width: 100%; padding: 10px; background-color: #667db6; color: white; border: none; border-radius: 4px; cursor: pointer;">Send Magic Link</button>
+            `;
+            document.getElementById('loginBtn').addEventListener('click', async () => {
+                const email = document.getElementById('emailInput').value;
+                if (email) {
+                    const { error } = await this.supabase.auth.signInWithOtp({ email });
+                    if (error) {
+                        alert('Error sending magic link: ' + error.message);
+                    } else {
+                        alert('Check your email for the login link!');
+                    }
+                }
+            });
+        }
+    }
+
     async handlePremiumUnlock() {
+        if (!this.user) {
+            alert('Please log in first to purchase premium.');
+            return;
+        }
+
+        const { data: { session } } = await this.supabase.auth.getSession();
+        if (!session) {
+            alert('Could not get user session. Please try logging in again.');
+            return;
+        }
+
         console.log('Attempting to unlock premium...');
         const unlockButton = document.getElementById('unlockPremiumBtn');
         unlockButton.textContent = 'Processing...';
@@ -918,13 +994,12 @@ class SVGAnimation {
             // The URL for your deployed worker. Replace with your actual worker URL.
             const workerUrl = 'https://functions.kris2511.workers.dev';
 
-            const response = await fetch(workerUrl, {
+            const response = await fetch(workerUrl + '/create-checkout', { // NOTE THE NEW PATH
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`,
                 },
-                // You can send data here if needed in the future
-                // body: JSON.stringify({ plan: 'lifetime' }),
             });
 
             if (!response.ok) {
@@ -983,23 +1058,7 @@ class SVGAnimation {
         }
     }
 
-    checkForPremium() {
-        // 1. Check for the success URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('payment') && urlParams.get('payment') === 'success') {
-            localStorage.setItem('isPremiumUser', 'true');
-            // Clean the URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-
-        // 2. Check localStorage for the premium flag
-        if (localStorage.getItem('isPremiumUser') === 'true') {
-            this.isPremium = true;
-        }
-
-        // 3. Update the UI based on premium status
-        this.updateUIAfterPremiumCheck();
-    }
+    
 
     updateUIAfterPremiumCheck() {
         const premiumGroup = document.querySelector('[data-group="premium"]');
